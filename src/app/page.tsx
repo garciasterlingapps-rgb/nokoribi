@@ -1,69 +1,101 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Gift, Snowflake, Truck } from "lucide-react";
+import { getProducts } from "@/lib/data";
+import { ProductCard } from "@/components/product-card";
+import { HeroCarousel } from "@/components/hero-carousel";
 
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();
+  const featured = products.slice(0, 6);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      {/* Carrusel */}
+      <HeroCarousel />
+
+      {/* Destacados */}
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-display text-3xl font-semibold tracking-tight">
+              Destacados
+            </h2>
+            <p className="mt-1 text-muted">
+              Lo más pedido, listo para personalizar.
+            </p>
+          </div>
+          <Link
+            href="/productos"
+            className="hidden text-sm font-medium text-accent underline-offset-4 hover:underline sm:block"
+          >
+            Ver todo
+          </Link>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {featured.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      </section>
+
+      {/* Cómo funciona */}
+      <section
+        id="como-funciona"
+        className="border-t border-line bg-card"
+      >
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <h2 className="text-center font-display text-3xl font-semibold tracking-tight">
+            Cómo funciona
+          </h2>
+          <div className="mt-10 grid gap-8 sm:grid-cols-3">
+            {[
+              {
+                icon: <Snowflake className="h-6 w-6" />,
+                title: "1. Arma tu pedido",
+                text: "Elige tu pizza, agrégale ingredientes extra y guarda tus combinaciones favoritas.",
+              },
+              {
+                icon: <Truck className="h-6 w-6" />,
+                title: "2. Preparamos y entregamos",
+                text: "Preparamos tu pedido, lo empacamos al vacío y coordinamos la entrega a tu puerta.",
+              },
+              {
+                icon: <Gift className="h-6 w-6" />,
+                title: "3. Gana puntos",
+                text: "Cada compra suma puntos que puedes canjear por descuentos, envío gratis y más.",
+              },
+            ].map((step) => (
+              <div key={step.title} className="flex flex-col items-center text-center">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                  {step.icon}
+                </span>
+                <h3 className="mt-4 font-semibold">{step.title}</h3>
+                <p className="mt-2 text-sm text-muted">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div className="overflow-hidden rounded-3xl bg-foreground px-6 py-12 text-center text-background sm:px-12">
+          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+            ¿Tienes antojo?
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-background/70">
+            Crea tu cuenta, arma tu pizza ideal y empieza a acumular puntos desde
+            tu primer pedido.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/registro"
+            className="mt-7 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-white transition-colors hover:bg-accent-hover"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Crear cuenta gratis <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+    </>
   );
 }
