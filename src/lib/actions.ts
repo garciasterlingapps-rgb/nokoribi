@@ -719,8 +719,10 @@ export async function updateRedemptionStatusAction(
   );
   if (!redemption) return { error: "Canje no encontrado" };
 
-  // Si se cancela un canje que no estaba cancelado, se devuelven los puntos
-  if (status === "CANCELADO" && redemption.status !== "CANCELADO") {
+  // Solo se devuelven puntos al cancelar un canje que aún estaba PENDIENTE.
+  // Un canje ya APLICADO (beneficio entregado) no se puede cancelar con reembolso,
+  // evitando el doble beneficio (descuento usado + puntos devueltos).
+  if (status === "CANCELADO" && redemption.status === "PENDIENTE") {
     await execute("UPDATE users SET points = points + $1 WHERE id = $2", [
       redemption.cost_points,
       redemption.user_id,
