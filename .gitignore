@@ -37,6 +37,9 @@ yarn-error.log*
 credentials*.json
 *.local.json
 
+# archivos fuente de imágenes (zips de Codex/AI)
+ai-design-*.zip
+
 # vercel
 .vercel
 

@@ -297,6 +297,18 @@ async function seed(pool: Pool): Promise<void> {
   // Productos: insertar los que falten (NO sobrescribir los existentes, para
   // no borrar los cambios que haga el admin en la Pizza del Mes).
   for (const p of PRODUCTS) {
+    const existing = await pool.query("SELECT id FROM products WHERE name = $1", [
+      p.name,
+    ]);
+    if (existing.rows[0]) {
+      // Solo rellenar la imagen si faltaba (no tocar descripción/precio)
+      await pool.query(
+        "UPDATE products SET image_url = COALESCE(image_url, $1) WHERE id = $2",
+        [p.image, existing.rows[0].id]
+      );
+      continue;
+    }
+
     // Pizza del Mes: solo crear el placeholder si no hay ninguna ya marcada.
     if (p.isPizzaDelMes === 1) {
       const anyMes = await pool.query(
@@ -304,21 +316,11 @@ async function seed(pool: Pool): Promise<void> {
       );
       if (anyMes.rows[0]) continue;
     }
-    const existing = await pool.query("SELECT id FROM products WHERE name = $1", [
-      p.name,
-    ]);
-    if (!existing.rows[0]) {
-      await pool.query(
-        "INSERT INTO products (id, name, description, category, base_price, image_url, is_builder, is_pizza_del_mes, stock, active, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,1,$10)",
-        [randomUUID(), p.name, p.desc, p.category, p.price, p.image, p.isBuilder, p.isPizzaDelMes, p.stock, now]
-      );
-    } else {
-      // Solo rellenar la imagen si faltaba (no tocar descripción/precio)
-      await pool.query(
-        "UPDATE products SET image_url = COALESCE(image_url, $1) WHERE id = $2",
-        [p.image, existing.rows[0].id]
-      );
-    }
+
+    await pool.query(
+      "INSERT INTO products (id, name, description, category, base_price, image_url, is_builder, is_pizza_del_mes, stock, active, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,1,$10)",
+      [randomUUID(), p.name, p.desc, p.category, p.price, p.image, p.isBuilder, p.isPizzaDelMes, p.stock, now]
+    );
   }
 
   // Migración única: actualizar la receta de la Pizza Vegetariana (solo si aún
