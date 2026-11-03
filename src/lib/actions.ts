@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { queryOne, execute } from "@/lib/db";
 import {
@@ -36,6 +37,23 @@ export interface ActionState {
 // Autenticación
 // ---------------------------------------------------------------------------
 
+// Rate-limiting de registro: máx. N cuentas por IP en una ventana de tiempo.
+const REGISTRATION_LIMIT = 5;
+const REGISTRATION_WINDOW_MS = 60 * 60 * 1000; // 1 hora
+
+async function getClientIp(): Promise<string> {
+  try {
+    const h = await headers();
+    const forwarded = h.get("x-forwarded-for");
+    if (forwarded) return forwarded.split(",")[0].trim();
+    const real = h.get("x-real-ip");
+    if (real) return real.trim();
+  } catch {
+    // ignore
+  }
+  return "unknown";
+}
+
 const registerSchema = z.object({
   name: z.string().trim().min(2, "Escribe tu nombre completo"),
   email: z.string().trim().email("Correo inválido"),
@@ -62,6 +80,17 @@ export async function registerAction(
 
   const { name, email, password, phone, address } = parsed.data;
 
+  // Rate-limiting por IP: evita crear muchas cuentas desde la misma conexión.
+  const ip = await getClientIp();
+  const windowStart = new Date(Date.now() - REGISTRATION_WINDOW_MS).toISOString();
+  const recent = await queryOne<{ n: number }>(
+    "SELECT COUNT(*) AS n FROM registration_attempts WHERE ip = $1 AND created_at > $2",
+    [ip, windowStart]
+  );
+  if ((recent?.n ?? 0) >= REGISTRATION_LIMIT) {
+    return { error: "Has creado demasiadas cuentas. Intenta más tarde." };
+  }
+
   const existing = await queryOne<{ id: string }>(
     "SELECT id FROM users WHERE email = $1",
     [email.toLowerCase()]
@@ -72,9 +101,20 @@ export async function registerAction(
 
   const passwordHash = await hashPassword(password);
   const id = randomUUID();
+  const now = new Date().toISOString();
   await execute(
     "INSERT INTO users (id, name, email, password_hash, phone, address, role, points, created_at) VALUES ($1, $2, $3, $4, $5, $6, 'CLIENTE', 0, $7)",
-    [id, name, email.toLowerCase(), passwordHash, phone || null, address || null, new Date().toISOString()]
+    [id, name, email.toLowerCase(), passwordHash, phone || null, address || null, now]
+  );
+
+  // Registrar el intento y limpiar intentos antiguos (mantiene la tabla acotada)
+  await execute(
+    "INSERT INTO registration_attempts (id, ip, email, created_at) VALUES ($1, $2, $3, $4)",
+    [randomUUID(), ip, email.toLowerCase(), now]
+  );
+  await execute(
+    "DELETE FROM registration_attempts WHERE created_at < $1",
+    [new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()]
   );
 
   const token = await createSession(id);
