@@ -1,5 +1,10 @@
 import { Settings } from "lucide-react";
-import { getGamePointsPerPizza, getPointsPerCop, getShippingCost } from "@/lib/settings";
+import {
+  getGameDailyMaxPoints,
+  getGamePointsPerPizza,
+  getPointsPerCop,
+  getShippingCost,
+} from "@/lib/settings";
 import { SettingsForm } from "@/components/settings-form";
 
 export const metadata = { title: "Configuración" };
@@ -8,6 +13,7 @@ export default async function AdminSettingsPage() {
   const pointsPerCop = await getPointsPerCop();
   const shippingCost = await getShippingCost();
   const gamePointsPerPizza = await getGamePointsPerPizza();
+  const gameDailyMaxPoints = await getGameDailyMaxPoints();
 
   return (
     <div className="max-w-2xl">
@@ -35,6 +41,7 @@ export default async function AdminSettingsPage() {
             pointsPerCop={pointsPerCop}
             shippingCost={shippingCost}
             gamePointsPerPizza={gamePointsPerPizza}
+            gameDailyMaxPoints={gameDailyMaxPoints}
           />
         </div>
       </section>

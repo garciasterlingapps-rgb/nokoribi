@@ -280,6 +280,7 @@ async function seed(pool: Pool): Promise<void> {
     ["points_per_cop", "1000"],
     ["envio_cop", "6000"],
     ["game_points_per_pizza", "5"],
+    ["game_daily_max_points", "50"],
   ] as const) {
     await pool.query(
       "INSERT INTO settings (key, value, updated_at) VALUES ($1, $2, $3) ON CONFLICT (key) DO NOTHING",

@@ -8,10 +8,12 @@ export function SettingsForm({
   pointsPerCop,
   shippingCost,
   gamePointsPerPizza,
+  gameDailyMaxPoints,
 }: {
   pointsPerCop: number;
   shippingCost: number;
   gamePointsPerPizza: number;
+  gameDailyMaxPoints: number;
 }) {
   const [state, formAction, pending] = useActionState(saveSettingsAction, {});
   const [preview, setPreview] = useState(pointsPerCop);
@@ -72,6 +74,22 @@ export function SettingsForm({
           className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 outline-none focus:ring-2 focus:ring-accent"
         />
       </label>
+
+      <label className="block text-sm text-muted">
+        Máximo de puntos diarios por jugar (Pizza Catcher)
+        <input
+          type="number"
+          name="gameDailyMaxPoints"
+          defaultValue={gameDailyMaxPoints}
+          min={0}
+          required
+          className="mt-1 w-full rounded-xl border border-line bg-card px-4 py-3 outline-none focus:ring-2 focus:ring-accent"
+        />
+      </label>
+      <p className="text-xs text-muted">
+        Tope de puntos que un jugador puede ganar en un día con el juego.
+        Evita que se acumulen puntos ilimitados por partidas automatizadas.
+      </p>
 
       <button
         type="submit"

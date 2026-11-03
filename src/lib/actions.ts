@@ -16,9 +16,11 @@ import {
 } from "@/lib/auth";
 import type { Reward } from "@/lib/types";
 import {
+  getGameDailyMaxPoints,
   getGamePointsPerPizza,
   getPointsPerCop,
   getShippingCost,
+  setGameDailyMaxPoints,
   setGamePointsPerPizza,
   setPointsPerCop,
   setShippingCost,
@@ -769,6 +771,7 @@ const settingsSchema = z.object({
   pointsPerCop: z.coerce.number().int().min(1, "El valor debe ser mayor a 0"),
   shippingCost: z.coerce.number().int().min(0, "El valor debe ser 0 o mayor"),
   gamePointsPerPizza: z.coerce.number().int().min(0, "El valor debe ser 0 o mayor"),
+  gameDailyMaxPoints: z.coerce.number().int().min(0, "El valor debe ser 0 o mayor"),
 });
 
 export async function saveSettingsAction(
@@ -782,6 +785,7 @@ export async function saveSettingsAction(
     pointsPerCop: formData.get("pointsPerCop"),
     shippingCost: formData.get("shippingCost"),
     gamePointsPerPizza: formData.get("gamePointsPerPizza"),
+    gameDailyMaxPoints: formData.get("gameDailyMaxPoints"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
@@ -790,6 +794,7 @@ export async function saveSettingsAction(
   await setPointsPerCop(parsed.data.pointsPerCop);
   await setShippingCost(parsed.data.shippingCost);
   await setGamePointsPerPizza(parsed.data.gamePointsPerPizza);
+  await setGameDailyMaxPoints(parsed.data.gameDailyMaxPoints);
 
   revalidatePath("/admin/configuracion");
   revalidatePath("/checkout");
@@ -813,7 +818,7 @@ export async function submitGameScoreAction(orders: number): Promise<GameResult>
   const user = await getCurrentUser();
   if (!user) return { needsLogin: true };
 
-  const safeOrders = Math.max(0, Math.min(100, Math.floor(orders)));
+  const safeOrders = Math.max(0, Math.min(30, Math.floor(orders)));
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
 
@@ -849,7 +854,8 @@ export async function submitGameScoreAction(orders: number): Promise<GameResult>
 
   let points = 0;
   if (firstPlay) {
-    points = safeOrders * (await getGamePointsPerPizza());
+    const rawPoints = safeOrders * (await getGamePointsPerPizza());
+    points = Math.min(rawPoints, await getGameDailyMaxPoints());
     if (points > 0) {
       await execute("UPDATE users SET points = points + $1 WHERE id = $2", [
         points,

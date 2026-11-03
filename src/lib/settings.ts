@@ -6,6 +6,7 @@ export const DEFAULT_SHIPPING_COP = 6000; // costo de envío por defecto
 const SETTINGS_KEY_POINTS_PER_COP = "points_per_cop";
 const SETTINGS_KEY_SHIPPING_COP = "envio_cop";
 const SETTINGS_KEY_GAME_POINTS_PER_PIZZA = "game_points_per_pizza";
+const SETTINGS_KEY_GAME_DAILY_MAX_POINTS = "game_daily_max_points";
 
 export async function getSetting(key: string): Promise<string | null> {
   const row = await queryOne<{ value: string }>(
@@ -53,6 +54,17 @@ export async function getGamePointsPerPizza(): Promise<number> {
 
 export async function setGamePointsPerPizza(value: number): Promise<void> {
   await setSetting(SETTINGS_KEY_GAME_POINTS_PER_PIZZA, String(value));
+}
+
+// Límite máximo de puntos diarios que un jugador puede ganar con el juego.
+export async function getGameDailyMaxPoints(): Promise<number> {
+  const raw = await getSetting(SETTINGS_KEY_GAME_DAILY_MAX_POINTS);
+  const n = raw ? Number.parseInt(raw, 10) : Number.NaN;
+  return Number.isFinite(n) && n >= 0 ? n : 50;
+}
+
+export async function setGameDailyMaxPoints(value: number): Promise<void> {
+  await setSetting(SETTINGS_KEY_GAME_DAILY_MAX_POINTS, String(value));
 }
 
 export { SETTINGS_KEY_POINTS_PER_COP };
