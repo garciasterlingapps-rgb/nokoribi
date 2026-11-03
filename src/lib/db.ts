@@ -255,15 +255,19 @@ async function migrate(pool: Pool): Promise<void> {
 async function seed(pool: Pool): Promise<void> {
   const now = new Date().toISOString();
 
-  // Admin user (cambia la contraseña antes de publicar)
-  const adminExists = await pool.query<{ n: number }>(
-    "SELECT COUNT(*) AS n FROM users WHERE role = 'ADMIN'"
-  );
-  if ((adminExists.rows[0]?.n ?? 0) === 0) {
-    await pool.query(
-      "INSERT INTO users (id, name, email, password_hash, phone, address, role, points, created_at) VALUES ($1, $2, $3, $4, $5, $6, 'ADMIN', 0, $7)",
-      [randomUUID(), "Administrador", "admin@nokoribi.co", bcrypt.hashSync("Nokoribi2026", 10), null, null, now]
+  // Admin user: la contraseña se toma de la variable de entorno ADMIN_PASSWORD
+  // (ver .env.example). Si no está definida, no se crea el admin automáticamente.
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminPassword) {
+    const adminExists = await pool.query<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM users WHERE role = 'ADMIN'"
     );
+    if ((adminExists.rows[0]?.n ?? 0) === 0) {
+      await pool.query(
+        "INSERT INTO users (id, name, email, password_hash, phone, address, role, points, created_at) VALUES ($1, $2, $3, $4, $5, $6, 'ADMIN', 0, $7)",
+        [randomUUID(), "Administrador", "admin@nokoribi.co", bcrypt.hashSync(adminPassword, 10), null, null, now]
+      );
+    }
   }
 
   // Configuración por defecto
