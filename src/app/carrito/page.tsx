@@ -62,7 +62,12 @@ export default function CartPage() {
 
                 {item.extras.length > 0 && (
                   <p className="mt-1 text-sm text-muted">
-                    + {item.extras.map((e) => e.name).join(", ")}
+                    +{" "}
+                    {item.extras
+                      .map((e) =>
+                        e.quantity > 1 ? `${e.name} (x${e.quantity})` : e.name
+                      )
+                      .join(", ")}
                   </p>
                 )}
 

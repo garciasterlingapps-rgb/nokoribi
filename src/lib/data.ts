@@ -12,7 +12,7 @@ import type {
 export const getProducts = cache(
   async (): Promise<(Product & { ingredients: Ingredient[] })[]> => {
     const products = await query<Product>(
-      "SELECT * FROM products WHERE active = 1 ORDER BY category, name"
+      "SELECT * FROM products WHERE active = 1 ORDER BY is_pizza_del_mes DESC, category, name"
     );
 
     const withIngredients = await Promise.all(

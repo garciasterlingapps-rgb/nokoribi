@@ -41,21 +41,24 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 CREATE TABLE IF NOT EXISTS products (
-  id          TEXT PRIMARY KEY,
-  name        TEXT NOT NULL,
-  description TEXT NOT NULL,
-  category    TEXT NOT NULL,
-  base_price  INTEGER NOT NULL,
-  image_url   TEXT,
-  is_builder  INTEGER NOT NULL DEFAULT 0,
-  active      INTEGER NOT NULL DEFAULT 1,
-  created_at  TEXT NOT NULL
+  id               TEXT PRIMARY KEY,
+  name             TEXT NOT NULL,
+  description      TEXT NOT NULL,
+  category         TEXT NOT NULL,
+  base_price       INTEGER NOT NULL,
+  image_url        TEXT,
+  is_builder       INTEGER NOT NULL DEFAULT 0,
+  is_pizza_del_mes INTEGER NOT NULL DEFAULT 0,
+  stock            INTEGER,
+  active           INTEGER NOT NULL DEFAULT 1,
+  created_at       TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ingredients (
   id          TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   extra_price INTEGER NOT NULL DEFAULT 0,
+  unit        TEXT,
   available   INTEGER NOT NULL DEFAULT 1
 );
 
@@ -158,7 +161,67 @@ const PRODUCT_IMAGES: Record<string, string> = {
 export const BUILD_YOUR_OWN_PIZZA_NAME = "Arma tu propia pizza";
 const BUILD_YOUR_OWN_PIZZA_PRICE = 13000;
 const BUILD_YOUR_OWN_PIZZA_DESC =
-  "Elige tus ingredientes y mira cómo se arma tu pizza, paso a paso.";
+  "Pizza de 30 cm de diámetro. Elige tus ingredientes y mira cómo se arma tu pizza, paso a paso.";
+
+const DIAMETRO = "30 cm de diámetro";
+
+// Ingredientes (precios finales tras los ajustes).
+const INGREDIENTS: { name: string; extraPrice: number; unit: string | null }[] = [
+  { name: "Salsa de tomate", extraPrice: 0, unit: null },
+  { name: "Queso mozzarella", extraPrice: 4000, unit: null },
+  { name: "Pepperoni", extraPrice: 4000, unit: null },
+  { name: "Champiñones", extraPrice: 3500, unit: null },
+  { name: "Aceitunas", extraPrice: 3000, unit: null },
+  { name: "Cebolla caramelizada", extraPrice: 3000, unit: null },
+  { name: "Maíz dulce", extraPrice: 3000, unit: null },
+  { name: "Lomo curado", extraPrice: 9900, unit: "50 gr" },
+  { name: "Rúcula", extraPrice: 3000, unit: null },
+  { name: "Jamón serrano", extraPrice: 9900, unit: "50 gr" },
+  { name: "Tocino", extraPrice: 4500, unit: null },
+  { name: "Pimentón asado", extraPrice: 3500, unit: null },
+  { name: "Berenjena", extraPrice: 3000, unit: null },
+  { name: "Zucchini", extraPrice: 3000, unit: null },
+  { name: "Albahaca", extraPrice: 3000, unit: null },
+];
+
+// Ingredientes base de la Pizza Vegetariana (nueva receta).
+const VEGETARIANA_INGREDIENTS = [
+  "Salsa de tomate",
+  "Queso mozzarella",
+  "Berenjena",
+  "Zucchini",
+  "Pimentón asado",
+  "Aceitunas",
+  "Rúcula",
+  "Albahaca",
+];
+
+const VEGETARIANA_DESC = `Pizza de ${DIAMETRO}. Masa madre, salsa de tomate, queso mozzarella, berenjena, zucchini, pimentón asado, aceitunas, rúcula y albahaca. Congelada y empacada al vacío.`;
+
+interface ProductDef {
+  name: string;
+  category: string;
+  price: number;
+  image: string | null;
+  desc: string;
+  isBuilder: number;
+  isPizzaDelMes: number;
+  stock: number | null;
+}
+
+const PRODUCTS: ProductDef[] = [
+  { name: "Pizza Pepperoni", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Pepperoni"], desc: `Pizza de ${DIAMETRO}. Masa madre de larga fermentación, salsa de tomate, queso mozzarella y pepperoni. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pizza Vegetariana", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Vegetariana"], desc: VEGETARIANA_DESC, isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pizza Lomo Curado", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Lomo Curado"], desc: `Pizza de ${DIAMETRO}. Masa madre, salsa de tomate, queso mozzarella, lomo curado y rúcula. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Churros (x6)", category: "PANADERIA", price: 12000, image: PRODUCT_IMAGES["Churros (x6)"], desc: "Churros artesanales listos para hornear o freír. Congelados y empacados al vacío.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Cinnamon Rolls (x4)", category: "PANADERIA", price: 15000, image: PRODUCT_IMAGES["Cinnamon Rolls (x4)"], desc: "Rollos de canela con glaseado, listos para hornear. Congelados y empacados al vacío.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: BUILD_YOUR_OWN_PIZZA_NAME, category: "PIZZA", price: BUILD_YOUR_OWN_PIZZA_PRICE, image: "/images/toppings/pizza-base.png", desc: BUILD_YOUR_OWN_PIZZA_DESC, isBuilder: 1, isPizzaDelMes: 0, stock: null },
+  { name: "Humus", category: "UNTABLES", price: 12000, image: null, desc: "Humus de garbanzos, cremoso y con toque de limón y tahini.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pesto rojo con pimientos asados", category: "UNTABLES", price: 14000, image: null, desc: "Pesto rojo con pimientos asados, frutos secos y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pesto normal", category: "UNTABLES", price: 12000, image: null, desc: "Pesto clásico de albahaca, piñones, ajo y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Mezcla de 4 quesos untable", category: "UNTABLES", price: 15000, image: null, desc: "Mezcla cremosa de 4 quesos, ideal para untar.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pizza del Mes", category: "PIZZA", price: 22000, image: null, desc: `Nuestra pizza especial de este mes (${DIAMETRO}). Edición limitada.`, isBuilder: 0, isPizzaDelMes: 1, stock: 50 },
+];
 
 // Garantiza que el esquema exista y siembra los datos iniciales (idempotente).
 let ensurePromise: Promise<void> | null = null;
@@ -173,7 +236,14 @@ function ensureDatabase(): Promise<void> {
 async function init(): Promise<void> {
   const pool = getPool();
   await pool.query(SCHEMA);
+  await migrate(pool);
   await seed(pool);
+}
+
+async function migrate(pool: Pool): Promise<void> {
+  await pool.query("ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS unit TEXT");
+  await pool.query("ALTER TABLE products ADD COLUMN IF NOT EXISTS is_pizza_del_mes INTEGER NOT NULL DEFAULT 0");
+  await pool.query("ALTER TABLE products ADD COLUMN IF NOT EXISTS stock INTEGER");
 }
 
 async function seed(pool: Pool): Promise<void> {
@@ -186,15 +256,7 @@ async function seed(pool: Pool): Promise<void> {
   if ((adminExists.rows[0]?.n ?? 0) === 0) {
     await pool.query(
       "INSERT INTO users (id, name, email, password_hash, phone, address, role, points, created_at) VALUES ($1, $2, $3, $4, $5, $6, 'ADMIN', 0, $7)",
-      [
-        randomUUID(),
-        "Administrador",
-        "admin@nokoribi.co",
-        bcrypt.hashSync("Nokoribi2026", 10),
-        null,
-        null,
-        now,
-      ]
+      [randomUUID(), "Administrador", "admin@nokoribi.co", bcrypt.hashSync("Nokoribi2026", 10), null, null, now]
     );
   }
 
@@ -210,85 +272,80 @@ async function seed(pool: Pool): Promise<void> {
     );
   }
 
-  // Imagen de portada del producto "Arma tu propia pizza"
+  // Upsert de ingredientes (actualiza precios/unidad, agrega nuevos)
+  for (const ing of INGREDIENTS) {
+    const existing = await pool.query("SELECT id FROM ingredients WHERE name = $1", [ing.name]);
+    if (existing.rows[0]) {
+      await pool.query(
+        "UPDATE ingredients SET extra_price = $1, unit = $2 WHERE id = $3",
+        [ing.extraPrice, ing.unit, existing.rows[0].id]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO ingredients (id, name, extra_price, unit, available) VALUES ($1, $2, $3, $4, 1)",
+        [randomUUID(), ing.name, ing.extraPrice, ing.unit]
+      );
+    }
+  }
+
+  // Productos: insertar los que falten (NO sobrescribir los existentes, para
+  // no borrar los cambios que haga el admin en la Pizza del Mes).
+  for (const p of PRODUCTS) {
+    const existing = await pool.query("SELECT id FROM products WHERE name = $1", [
+      p.name,
+    ]);
+    if (!existing.rows[0]) {
+      await pool.query(
+        "INSERT INTO products (id, name, description, category, base_price, image_url, is_builder, is_pizza_del_mes, stock, active, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,1,$10)",
+        [randomUUID(), p.name, p.desc, p.category, p.price, p.image, p.isBuilder, p.isPizzaDelMes, p.stock, now]
+      );
+    } else {
+      // Solo rellenar la imagen si faltaba (no tocar descripción/precio)
+      await pool.query(
+        "UPDATE products SET image_url = COALESCE(image_url, $1) WHERE id = $2",
+        [p.image, existing.rows[0].id]
+      );
+    }
+  }
+
+  // Migración única: actualizar la receta de la Pizza Vegetariana (solo si aún
+  // muestra la receta antigua, para no pisar ediciones posteriores del admin).
   await pool.query(
-    "UPDATE products SET image_url = '/images/toppings/pizza-base.png' WHERE is_builder = 1 AND (image_url IS NULL OR image_url = '')"
+    "UPDATE products SET description = $1 WHERE name = 'Pizza Vegetariana' AND description NOT LIKE '%berenjena%'",
+    [VEGETARIANA_DESC]
   );
 
-  const count = await pool.query<{ n: number }>(
-    "SELECT COUNT(*) AS n FROM products"
+  // Migración única: especificar el diámetro de 30 cm en las pizzas que aún no
+  // lo indican.
+  await pool.query(
+    "UPDATE products SET description = 'Pizza de 30 cm de diámetro. ' || description WHERE category = 'PIZZA' AND description NOT LIKE '%30 cm%'"
   );
-  if ((count.rows[0]?.n ?? 0) > 0) return;
 
-  // Products
-  const products: [string, string, string, string, number, string | null, number][] = [
-    [randomUUID(), "Pizza Pepperoni", "Masa madre de larga fermentación, salsa de tomate, queso mozzarella y pepperoni. Congelada y empacada al vacío.", "PIZZA", 20000, PRODUCT_IMAGES["Pizza Pepperoni"], 0],
-    [randomUUID(), "Pizza Vegetariana", "Masa madre, salsa de tomate, queso mozzarella y vegetales frescos de temporada. Congelada y empacada al vacío.", "PIZZA", 20000, PRODUCT_IMAGES["Pizza Vegetariana"], 0],
-    [randomUUID(), "Pizza Lomo Curado", "Masa madre, salsa de tomate, queso mozzarella, lomo curado y rúcula. Congelada y empacada al vacío.", "PIZZA", 20000, PRODUCT_IMAGES["Pizza Lomo Curado"], 0],
-    [randomUUID(), "Churros (x6)", "Churros artesanales listos para hornear o freír. Congelados y empacados al vacío.", "PANADERIA", 12000, PRODUCT_IMAGES["Churros (x6)"], 0],
-    [randomUUID(), "Cinnamon Rolls (x4)", "Rollos de canela con glaseado, listos para hornear. Congelados y empacados al vacío.", "PANADERIA", 15000, PRODUCT_IMAGES["Cinnamon Rolls (x4)"], 0],
-    [randomUUID(), BUILD_YOUR_OWN_PIZZA_NAME, BUILD_YOUR_OWN_PIZZA_DESC, "PIZZA", BUILD_YOUR_OWN_PIZZA_PRICE, "/images/toppings/pizza-base.png", 1],
-  ];
-
-  const ids: Record<string, string> = {};
-  for (const [id, name, desc, category, price, image, isBuilder] of products) {
+  // Receta de la Pizza Vegetariana
+  await pool.query(
+    "DELETE FROM product_ingredients WHERE product_id = (SELECT id FROM products WHERE name = 'Pizza Vegetariana')"
+  );
+  for (const ingName of VEGETARIANA_INGREDIENTS) {
     await pool.query(
-      "INSERT INTO products (id, name, description, category, base_price, image_url, is_builder, active, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, 1, $8)",
-      [id, name, desc, category, price, image, isBuilder, now]
+      "INSERT INTO product_ingredients (product_id, ingredient_id) SELECT p.id, i.id FROM products p, ingredients i WHERE p.name = 'Pizza Vegetariana' AND i.name = $1",
+      [ingName]
     );
-    ids[name] = id;
   }
 
-  // Ingredients
-  const ingredientDefs: [string, number][] = [
-    ["Salsa de tomate", 0],
-    ["Queso mozzarella", 2000],
-    ["Pepperoni", 3000],
-    ["Champiñones", 2500],
-    ["Aceitunas", 2000],
-    ["Cebolla caramelizada", 2000],
-    ["Maíz dulce", 2000],
-    ["Lomo curado", 4000],
-    ["Rúcula", 2000],
-    ["Jamón serrano", 3500],
-    ["Tocino", 3500],
-    ["Pimentón asado", 2500],
-  ];
-  const ingIds: Record<string, string> = {};
-  for (const [name, extra] of ingredientDefs) {
-    const id = randomUUID();
-    await pool.query(
-      "INSERT INTO ingredients (id, name, extra_price, available) VALUES ($1, $2, $3, 1)",
-      [id, name, extra]
-    );
-    ingIds[name] = id;
-  }
-
-  const link = (productName: string, ingredientName: string) =>
-    pool.query(
-      "INSERT INTO product_ingredients (product_id, ingredient_id) VALUES ($1, $2)",
-      [ids[productName], ingIds[ingredientName]]
-    );
-
-  // Default ingredients per pizza
-  for (const i of ["Salsa de tomate", "Queso mozzarella", "Pepperoni"])
-    await link("Pizza Pepperoni", i);
-  for (const i of ["Salsa de tomate", "Queso mozzarella", "Champiñones", "Aceitunas", "Cebolla caramelizada", "Maíz dulce"])
-    await link("Pizza Vegetariana", i);
-  for (const i of ["Salsa de tomate", "Queso mozzarella", "Lomo curado", "Rúcula"])
-    await link("Pizza Lomo Curado", i);
-
-  // Rewards
-  const rewards: [string, string, number, number][] = [
-    ["Envío gratis", "ENVIO_GRATIS", 200, 0],
-    ["10% de descuento", "DESCUENTO", 300, 10],
-    ["Pizza gratis", "PRODUCTO", 500, 20000],
-  ];
-  for (const [name, type, cost, value] of rewards) {
-    await pool.query(
-      "INSERT INTO rewards (id, name, type, cost_points, value, active) VALUES ($1, $2, $3, $4, $5, 1)",
-      [randomUUID(), name, type, cost, value]
-    );
+  // Recompensas (solo si no hay)
+  const rewardsCount = await pool.query<{ n: number }>("SELECT COUNT(*) AS n FROM rewards");
+  if ((rewardsCount.rows[0]?.n ?? 0) === 0) {
+    const rewards: [string, string, number, number][] = [
+      ["Envío gratis", "ENVIO_GRATIS", 200, 0],
+      ["10% de descuento", "DESCUENTO", 300, 10],
+      ["Pizza gratis", "PRODUCTO", 500, 20000],
+    ];
+    for (const [name, type, cost, value] of rewards) {
+      await pool.query(
+        "INSERT INTO rewards (id, name, type, cost_points, value, active) VALUES ($1, $2, $3, $4, $5, 1)",
+        [randomUUID(), name, type, cost, value]
+      );
+    }
   }
 }
 

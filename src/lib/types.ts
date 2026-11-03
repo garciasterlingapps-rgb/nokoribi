@@ -14,7 +14,7 @@ export interface User {
 
 export type SafeUser = Omit<User, "password_hash">;
 
-export type ProductCategory = "PIZZA" | "PANADERIA";
+export type ProductCategory = "PIZZA" | "PANADERIA" | "UNTABLES";
 
 export interface Product {
   id: string;
@@ -24,6 +24,8 @@ export interface Product {
   base_price: number;
   image_url: string | null;
   is_builder: number;
+  is_pizza_del_mes: number;
+  stock: number | null;
   active: number;
   created_at: string;
 }
@@ -32,6 +34,7 @@ export interface Ingredient {
   id: string;
   name: string;
   extra_price: number;
+  unit: string | null;
   available: number;
 }
 
@@ -65,6 +68,7 @@ export interface CartExtra {
   id: string;
   name: string;
   extraPrice: number;
+  quantity: number;
 }
 
 export interface CartItem {

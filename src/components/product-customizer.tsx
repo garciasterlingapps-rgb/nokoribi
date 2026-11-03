@@ -3,10 +3,22 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 /* eslint-disable @next/next/no-img-element */
-import { ArrowLeft, Check, Minus, Plus, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Ingredient, Product } from "@/lib/types";
 import { formatCOP } from "@/lib/money";
 import { useCart } from "@/components/cart-provider";
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  PIZZA: "🍕",
+  PANADERIA: "🥐",
+  UNTABLES: "🥣",
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  PIZZA: "Pizza",
+  PANADERIA: "Panadería",
+  UNTABLES: "Untable",
+};
 
 export function ProductCustomizer({
   product,
@@ -16,7 +28,7 @@ export function ProductCustomizer({
   allIngredients: Ingredient[];
 }) {
   const { add } = useCart();
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<Record<string, number>>({});
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -26,34 +38,46 @@ export function ProductCustomizer({
   );
   const isPizza = product.category === "PIZZA";
 
-  const extrasTotal = selected.reduce((acc, id) => {
+  const extrasTotal = Object.entries(selected).reduce((acc, [id, qty]) => {
     const ing = allIngredients.find((i) => i.id === id);
-    return acc + (ing?.extra_price ?? 0);
+    return acc + (ing?.extra_price ?? 0) * qty;
   }, 0);
   const unitPrice = product.base_price + extrasTotal;
   const lineTotal = unitPrice * quantity;
+  const soldOut =
+    product.is_pizza_del_mes === 1 && (product.stock ?? 0) <= 0;
 
-  const toggle = (id: string) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  const changeQty = (id: string, delta: number) => {
+    setSelected((prev) => {
+      const next = { ...prev };
+      const current = next[id] ?? 0;
+      const val = current + delta;
+      if (val <= 0) delete next[id];
+      else next[id] = Math.min(val, 20);
+      return next;
+    });
     setAdded(false);
   };
 
   const handleAdd = () => {
-    const chosenExtras = allIngredients
-      .filter((i) => selected.includes(i.id))
-      .map((i) => ({ id: i.id, name: i.name, extraPrice: i.extra_price }));
+    const extraIds: string[] = [];
+    const chosenExtras: { id: string; name: string; extraPrice: number; quantity: number }[] = [];
+    for (const [id, qty] of Object.entries(selected)) {
+      const ing = allIngredients.find((i) => i.id === id);
+      if (!ing) continue;
+      for (let i = 0; i < qty; i++) extraIds.push(id);
+      chosenExtras.push({ id: ing.id, name: ing.name, extraPrice: ing.extra_price, quantity: qty });
+    }
 
     add(
       {
-        key: `${product.id}|${[...selected].sort().join(",")}`,
+        key: `${product.id}|${extraIds.sort().join(",")}`,
         productId: product.id,
         name: product.name,
         quantity: 1,
         basePrice: product.base_price,
         unitPrice,
-        extraIds: [...selected],
+        extraIds,
         extras: chosenExtras,
       },
       quantity
@@ -82,7 +106,7 @@ export function ProductCustomizer({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-[8rem]">
-                {isPizza ? "🍕" : "🥐"}
+                {CATEGORY_EMOJI[product.category] ?? "🍴"}
               </div>
             )}
           </div>
@@ -91,7 +115,7 @@ export function ProductCustomizer({
         {/* Detalle */}
         <div>
           <span className="text-sm font-medium uppercase tracking-wide text-accent">
-            {isPizza ? "Pizza" : "Panadería"}
+            {CATEGORY_LABEL[product.category] ?? product.category}
           </span>
           <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             {product.name}
@@ -101,6 +125,20 @@ export function ProductCustomizer({
           <div className="mt-5 text-3xl font-semibold text-accent">
             {formatCOP(unitPrice)}
           </div>
+
+          {product.is_pizza_del_mes === 1 && (
+            <p
+              className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                (product.stock ?? 0) > 0
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-600"
+              }`}
+            >
+              {(product.stock ?? 0) > 0
+                ? `⭐ Pizza del Mes · Quedan ${product.stock} disponibles`
+                : "⭐ Pizza del Mes · Agotada"}
+            </p>
+          )}
 
           {product.ingredients.length > 0 && (
             <div className="mt-6">
@@ -121,26 +159,41 @@ export function ProductCustomizer({
           {isPizza && extras.length > 0 && (
             <div className="mt-6">
               <p className="text-sm font-semibold">Agregar ingredientes</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-3 space-y-2">
                 {extras.map((i) => {
-                  const isOn = selected.includes(i.id);
+                  const qty = selected[i.id] ?? 0;
                   return (
-                    <button
+                    <div
                       key={i.id}
-                      type="button"
-                      onClick={() => toggle(i.id)}
-                      className={
-                        isOn
-                          ? "inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-sm font-medium text-white"
-                          : "inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-sm ring-1 ring-line transition-colors hover:bg-black/5"
-                      }
+                      className="flex items-center justify-between gap-3 rounded-xl border border-line bg-card px-4 py-2.5"
                     >
-                      {isOn && <Check className="h-3.5 w-3.5" />}
-                      {i.name}
-                      <span className={isOn ? "text-white/80" : "text-muted"}>
-                        +{formatCOP(i.extra_price)}
-                      </span>
-                    </button>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{i.name}</p>
+                        <p className="text-xs text-muted">
+                          {i.unit ? `+${formatCOP(i.extra_price)} por ${i.unit}` : `+${formatCOP(i.extra_price)}`}
+                        </p>
+                      </div>
+                      <div className="flex flex-none items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => changeQty(i.id, -1)}
+                          disabled={qty === 0}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line transition-colors hover:bg-black/5 disabled:opacity-30"
+                          aria-label={`Quitar ${i.name}`}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="w-6 text-center text-sm font-semibold">{qty}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeQty(i.id, 1)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover"
+                          aria-label={`Agregar ${i.name}`}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -172,10 +225,15 @@ export function ProductCustomizer({
             <button
               type="button"
               onClick={handleAdd}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-white transition-colors hover:bg-accent-hover sm:flex-none"
+              disabled={soldOut}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
             >
               <ShoppingBag className="h-4 w-4" />
-              {added ? "¡Agregado!" : `Agregar · ${formatCOP(lineTotal)}`}
+              {soldOut
+                ? "Agotada"
+                : added
+                  ? "¡Agregado!"
+                  : `Agregar · ${formatCOP(lineTotal)}`}
             </button>
           </div>
 

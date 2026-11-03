@@ -14,6 +14,18 @@ const PAYMENT_LABELS: Record<string, string> = {
   TRANSFERENCIA: "Transferencia bancaria",
 };
 
+function formatExtras(extras: { id: string; name: string }[]): string {
+  const counts = new Map<string, { name: string; n: number }>();
+  for (const e of extras) {
+    const cur = counts.get(e.id) ?? { name: e.name, n: 0 };
+    cur.n += 1;
+    counts.set(e.id, cur);
+  }
+  return [...counts.values()]
+    .map((c) => (c.n > 1 ? `${c.name} (x${c.n})` : c.name))
+    .join(", ");
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -72,7 +84,7 @@ export default async function OrderPage({
                 {item.quantity}× {item.product_name}
                 {item.extras.length > 0 && (
                   <span className="block text-xs text-muted">
-                    + {item.extras.map((e) => e.name).join(", ")}
+                    + {formatExtras(item.extras)}
                   </span>
                 )}
               </span>

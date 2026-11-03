@@ -9,6 +9,7 @@ const CATEGORIES: { value: ProductCategory | "TODOS"; label: string }[] = [
   { value: "TODOS", label: "Todos" },
   { value: "PIZZA", label: "Pizzas" },
   { value: "PANADERIA", label: "Panadería" },
+  { value: "UNTABLES", label: "Untables" },
 ];
 
 export default async function ProductosPage({

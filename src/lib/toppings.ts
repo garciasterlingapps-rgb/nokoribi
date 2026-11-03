@@ -25,6 +25,9 @@ export const TOPPINGS: ToppingVisual[] = [
   { name: "Jamón serrano", sprite: "/images/toppings/jamon.png", emoji: "🍖", x: -18, y: 24, size: 16 },
   { name: "Tocino", sprite: "/images/toppings/tocino.png", emoji: "🥓", x: 8, y: -22, size: 16 },
   { name: "Pimentón asado", sprite: "/images/toppings/pimenton.png", emoji: "🫑", x: -4, y: 18, size: 16 },
+  { name: "Berenjena", sprite: "/images/toppings/berenjena.png", emoji: "🍆", x: -12, y: 10, size: 18 },
+  { name: "Zucchini", sprite: "/images/toppings/zucchini.png", emoji: "🥒", x: 10, y: -10, size: 18 },
+  { name: "Albahaca", sprite: "/images/toppings/albahaca.png", emoji: "🌿", x: 0, y: 0, size: 20 },
 ];
 
 export function getToppingVisual(name: string): ToppingVisual | undefined {

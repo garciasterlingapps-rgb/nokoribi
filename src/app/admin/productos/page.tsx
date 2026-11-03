@@ -52,14 +52,29 @@ export default async function AdminProductsPage() {
                         />
                       ) : (
                         <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-accent-soft text-lg">
-                          {p.category === "PIZZA" ? "🍕" : "🥐"}
+                          {p.category === "PIZZA"
+                            ? "🍕"
+                            : p.category === "PANADERIA"
+                              ? "🥐"
+                              : "🥣"}
                         </span>
                       )}
-                      <span className="font-medium">{p.name}</span>
+                      <span className="font-medium">
+                        {p.name}
+                        {p.is_pizza_del_mes === 1 && (
+                          <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-white">
+                            ⭐ Pizza del Mes
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    {p.category === "PIZZA" ? "Pizza" : "Panadería"}
+                    {p.category === "PIZZA"
+                      ? "Pizza"
+                      : p.category === "PANADERIA"
+                        ? "Panadería"
+                        : "Untable"}
                   </td>
                   <td className="px-4 py-3">{formatCOP(p.base_price)}</td>
                   <td className="px-4 py-3">
@@ -99,7 +114,14 @@ export default async function AdminProductsPage() {
             <tbody className="divide-y divide-line">
               {ingredients.map((ing) => (
                 <tr key={ing.id} className="hover:bg-black/[0.02]">
-                  <td className="px-4 py-3 font-medium">{ing.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {ing.name}
+                    {ing.unit && (
+                      <span className="ml-1 text-xs font-normal text-muted">
+                        ({ing.unit})
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <IngredientPriceForm id={ing.id} price={ing.extra_price} />
                   </td>

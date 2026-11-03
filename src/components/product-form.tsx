@@ -11,6 +11,9 @@ export function ProductForm({ product }: { product?: Product }) {
   const [state, formAction, pending] = useActionState(saveProductAction, {});
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
   const [imgError, setImgError] = useState(false);
+  const [isPizzaDelMes, setIsPizzaDelMes] = useState(
+    product?.is_pizza_del_mes === 1
+  );
 
   return (
     <form action={formAction} className="max-w-lg space-y-4">
@@ -59,6 +62,7 @@ export function ProductForm({ product }: { product?: Product }) {
           >
             <option value="PIZZA">Pizza</option>
             <option value="PANADERIA">Panadería</option>
+            <option value="UNTABLES">Untables</option>
           </select>
         </label>
 
@@ -121,6 +125,37 @@ export function ProductForm({ product }: { product?: Product }) {
           <option value="0">Inactivo</option>
         </select>
       </label>
+
+      <div className="rounded-2xl border border-line bg-card p-4">
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            name="isPizzaDelMes"
+            value="1"
+            checked={isPizzaDelMes}
+            onChange={(e) => setIsPizzaDelMes(e.target.checked)}
+            className="h-4 w-4 rounded border-line accent-accent"
+          />
+          ⭐ Pizza del Mes (con stock limitado)
+        </label>
+        <p className="mt-1 text-xs text-muted">
+          Marca esta casilla para que el producto sea la Pizza del Mes. El
+          stock se irá descontando con cada pedido.
+        </p>
+
+        {isPizzaDelMes && (
+          <label className="mt-3 block text-sm text-muted">
+            Stock disponible
+            <input
+              type="number"
+              name="stock"
+              defaultValue={product?.stock ?? 50}
+              min={0}
+              className="mt-1 w-full rounded-xl border border-line bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-accent"
+            />
+          </label>
+        )}
+      </div>
 
       <div className="flex gap-3">
         <button

@@ -165,7 +165,12 @@ export function CheckoutForm({
                   {i.quantity}× {i.name}
                   {i.extras.length > 0 && (
                     <span className="block text-xs text-muted/70">
-                      + {i.extras.map((e) => e.name).join(", ")}
+                      +{" "}
+                      {i.extras
+                        .map((e) =>
+                          e.quantity > 1 ? `${e.name} (x${e.quantity})` : e.name
+                        )
+                        .join(", ")}
                     </span>
                   )}
                 </span>

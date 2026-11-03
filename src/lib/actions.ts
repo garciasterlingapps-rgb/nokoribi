@@ -211,14 +211,29 @@ export async function placeOrderAction(
     quantity: number;
     unitPrice: number;
     extraIds: string[];
+    isPizzaDelMes: number;
   }[] = [];
 
   for (const item of cart) {
-    const product = await queryOne<{ id: string; base_price: number }>(
-      "SELECT * FROM products WHERE id = $1 AND active = 1",
-      [item.productId]
-    );
+    const product = await queryOne<{
+      id: string;
+      name: string;
+      base_price: number;
+      is_pizza_del_mes: number;
+      stock: number | null;
+    }>("SELECT * FROM products WHERE id = $1 AND active = 1", [item.productId]);
     if (!product) return { error: "Uno de los productos ya no está disponible" };
+
+    if (
+      product.is_pizza_del_mes === 1 &&
+      (product.stock ?? 0) < item.quantity
+    ) {
+      return {
+        error: `No queda suficiente stock de "${product.name}". Quedan ${
+          product.stock ?? 0
+        } disponibles.`,
+      };
+    }
 
     let unitPrice = product.base_price;
     for (const extraId of item.extraIds) {
@@ -235,6 +250,7 @@ export async function placeOrderAction(
       quantity: item.quantity,
       unitPrice,
       extraIds: item.extraIds,
+      isPizzaDelMes: product.is_pizza_del_mes,
     });
     subtotal += unitPrice * item.quantity;
   }
@@ -309,6 +325,14 @@ export async function placeOrderAction(
         [itemId, extraId]
       );
     }
+
+    // Descontar el stock de la Pizza del Mes
+    if (line.isPizzaDelMes === 1) {
+      await execute(
+        "UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2 AND is_pizza_del_mes = 1",
+        [line.quantity, line.productId]
+      );
+    }
   }
 
   // Registrar el canje de la recompensa
@@ -376,10 +400,12 @@ export async function updateOrderStatusAction(
 const productSchema = z.object({
   name: z.string().trim().min(2, "Escribe el nombre del producto"),
   description: z.string().trim().min(5, "Escribe una descripción"),
-  category: z.enum(["PIZZA", "PANADERIA"]),
+  category: z.enum(["PIZZA", "PANADERIA", "UNTABLES"]),
   basePrice: z.coerce.number().int().min(0, "Precio inválido"),
   active: z.enum(["1", "0"]),
   imageUrl: z.string().trim().optional(),
+  isPizzaDelMes: z.enum(["1", "0"]).optional(),
+  stock: z.string().trim().optional(),
 });
 
 export async function saveProductAction(
@@ -397,6 +423,8 @@ export async function saveProductAction(
     basePrice: formData.get("basePrice"),
     active: formData.get("active") ?? "1",
     imageUrl: formData.get("imageUrl") || undefined,
+    isPizzaDelMes: formData.get("isPizzaDelMes") ?? "0",
+    stock: formData.get("stock") || undefined,
   });
 
   if (!parsed.success) {
@@ -407,15 +435,24 @@ export async function saveProductAction(
     parsed.data;
   const image = imageUrl?.trim() ? imageUrl.trim() : null;
 
+  const isPizzaDelMes = Number(parsed.data.isPizzaDelMes ?? "0");
+  const stockStr = parsed.data.stock?.trim();
+  const stock =
+    isPizzaDelMes === 1
+      ? stockStr
+        ? Math.max(0, Math.floor(Number(stockStr) || 0))
+        : 0
+      : null;
+
   if (id && typeof id === "string" && id.length > 0) {
     await execute(
-      "UPDATE products SET name = $1, description = $2, category = $3, base_price = $4, active = $5, image_url = $6 WHERE id = $7",
-      [name, description, category, basePrice, Number(active), image, id]
+      "UPDATE products SET name = $1, description = $2, category = $3, base_price = $4, active = $5, image_url = $6, is_pizza_del_mes = $7, stock = $8 WHERE id = $9",
+      [name, description, category, basePrice, Number(active), image, isPizzaDelMes, stock, id]
     );
   } else {
     await execute(
-      "INSERT INTO products (id, name, description, category, base_price, image_url, active, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-      [randomUUID(), name, description, category, basePrice, image, Number(active), new Date().toISOString()]
+      "INSERT INTO products (id, name, description, category, base_price, image_url, active, is_pizza_del_mes, stock, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+      [randomUUID(), name, description, category, basePrice, image, Number(active), isPizzaDelMes, stock, new Date().toISOString()]
     );
   }
 

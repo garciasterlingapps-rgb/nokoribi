@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Ingredient, Product } from "@/lib/types";
 import { formatCOP } from "@/lib/money";
 import { useCart } from "@/components/cart-provider";
@@ -51,6 +51,7 @@ interface PlacedTopping {
   name: string;
   visual: ToppingVisual;
   positions: { x: number; y: number }[];
+  quantity: number;
 }
 
 const TOPPING_COUNT = 10;
@@ -92,32 +93,44 @@ export function PizzaBuilder({
   const toppings = allIngredients.filter((i) => i.extra_price > 0);
   const selectedIds = placed.map((p) => p.id);
 
-  const extrasTotal = placed.reduce(
-    (acc, p) =>
-      acc + (allIngredients.find((i) => i.id === p.id)?.extra_price ?? 0),
-    0
-  );
+  const extrasTotal = placed.reduce((acc, p) => {
+    const ing = allIngredients.find((i) => i.id === p.id);
+    return acc + (ing?.extra_price ?? 0) * p.quantity;
+  }, 0);
   const unitPrice = product.base_price + extrasTotal;
 
-  const toggle = (id: string) => {
+  const changeQty = (id: string, delta: number) => {
     setPlaced((prev) => {
-      const exists = prev.find((p) => p.id === id);
-      if (exists) return prev.filter((p) => p.id !== id);
+      const existing = prev.find((p) => p.id === id);
+      if (existing) {
+        const qty = existing.quantity + delta;
+        if (qty <= 0) return prev.filter((p) => p.id !== id);
+        return prev.map((p) =>
+          p.id === id ? { ...p, quantity: Math.min(qty, 20) } : p
+        );
+      }
+
+      if (delta <= 0) return prev;
 
       const ing = allIngredients.find((i) => i.id === id);
       const visual = ing ? getToppingVisual(ing.name) : undefined;
       if (!ing || !visual) return prev;
 
       const positions = randomPositions(TOPPING_COUNT);
-      return [...prev, { id, name: ing.name, visual, positions }];
+      return [...prev, { id, name: ing.name, visual, positions, quantity: 1 }];
     });
     setAdded(false);
   };
 
   const handleAdd = () => {
-    const chosen = allIngredients
-      .filter((i) => placed.some((p) => p.id === i.id))
-      .map((i) => ({ id: i.id, name: i.name, extraPrice: i.extra_price }));
+    const extraIds: string[] = [];
+    const chosen: { id: string; name: string; extraPrice: number; quantity: number }[] = [];
+    for (const p of placed) {
+      const ing = allIngredients.find((i) => i.id === p.id);
+      if (!ing) continue;
+      for (let i = 0; i < p.quantity; i++) extraIds.push(p.id);
+      chosen.push({ id: ing.id, name: ing.name, extraPrice: ing.extra_price, quantity: p.quantity });
+    }
     add({
       key: `custom|${[...selectedIds].sort().join(",")}`,
       productId: product.id,
@@ -125,7 +138,7 @@ export function PizzaBuilder({
       quantity: 1,
       basePrice: product.base_price,
       unitPrice,
-      extraIds: selectedIds,
+      extraIds,
       extras: chosen,
     });
     setAdded(true);
@@ -168,7 +181,7 @@ export function PizzaBuilder({
               <p className="text-center text-xs text-muted lg:text-sm">
                 {placed.length === 0
                   ? "Elige tus ingredientes 👇"
-                  : `${placed.length} ingrediente(s) agregados`}
+                  : `${placed.reduce((s, p) => s + p.quantity, 0)} porción(es) agregadas`}
               </p>
               <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-line bg-card px-4 py-3 lg:px-5 lg:py-4">
                 <div>
@@ -223,17 +236,16 @@ export function PizzaBuilder({
 
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:mt-5">
             {toppings.map((ing) => {
-              const isOn = placed.some((p) => p.id === ing.id);
+              const placedTop = placed.find((p) => p.id === ing.id);
+              const qty = placedTop?.quantity ?? 0;
               const visual = getToppingVisual(ing.name);
               return (
-                <button
+                <div
                   key={ing.id}
-                  type="button"
-                  onClick={() => toggle(ing.id)}
                   className={
-                    isOn
-                      ? "relative flex flex-col items-center gap-1 rounded-2xl border-2 border-accent bg-accent-soft p-3 text-center transition-all"
-                      : "relative flex flex-col items-center gap-1 rounded-2xl border border-line bg-card p-3 text-center transition-all hover:border-accent/50 hover:bg-black/5"
+                    qty > 0
+                      ? "flex flex-col items-center gap-1 rounded-2xl border-2 border-accent bg-accent-soft p-3 text-center transition-all"
+                      : "flex flex-col items-center gap-1 rounded-2xl border border-line bg-card p-3 text-center transition-all"
                   }
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-2xl">
@@ -243,14 +255,33 @@ export function PizzaBuilder({
                     {ing.name}
                   </span>
                   <span className="text-xs text-accent">
-                    +{formatCOP(ing.extra_price)}
+                    {ing.unit
+                      ? `+${formatCOP(ing.extra_price)} / ${ing.unit}`
+                      : `+${formatCOP(ing.extra_price)}`}
                   </span>
-                  {isOn && (
-                    <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
-                      <Check className="h-3 w-3" />
+                  <div className="mt-1 flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => changeQty(ing.id, -1)}
+                      disabled={qty === 0}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border border-line transition-colors hover:bg-black/5 disabled:opacity-30"
+                      aria-label={`Quitar ${ing.name}`}
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="w-5 text-center text-sm font-semibold">
+                      {qty}
                     </span>
-                  )}
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => changeQty(ing.id, 1)}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover"
+                      aria-label={`Agregar ${ing.name}`}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
