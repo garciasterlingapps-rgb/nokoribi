@@ -297,6 +297,13 @@ async function seed(pool: Pool): Promise<void> {
   // Productos: insertar los que falten (NO sobrescribir los existentes, para
   // no borrar los cambios que haga el admin en la Pizza del Mes).
   for (const p of PRODUCTS) {
+    // Pizza del Mes: solo crear el placeholder si no hay ninguna ya marcada.
+    if (p.isPizzaDelMes === 1) {
+      const anyMes = await pool.query(
+        "SELECT id FROM products WHERE is_pizza_del_mes = 1"
+      );
+      if (anyMes.rows[0]) continue;
+    }
     const existing = await pool.query("SELECT id FROM products WHERE name = $1", [
       p.name,
     ]);
