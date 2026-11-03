@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Gamepad2, Heart, Volume2, VolumeX } from "lucide-react";
 import { submitGameScoreAction } from "@/lib/actions";
 import type { GameResult } from "@/lib/actions";
@@ -134,6 +135,7 @@ export function PizzaCatcherGame({
   leaderboard: LeaderboardEntry[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const router = useRouter();
   const [phase, setPhase] = useState<"idle" | "playing" | "over">("idle");
   const [hud, setHud] = useState<Hud>({
     hearts: MAX_HEARTS,
@@ -294,6 +296,7 @@ export function PizzaCatcherGame({
           setBestRecord((prev) => Math.max(prev, newBest));
         }
         setIsNewRecord(isNewBest);
+        router.refresh();
       } catch {
         setResult({ error: "No se pudo registrar tu puntaje" });
         setIsNewRecord(false);

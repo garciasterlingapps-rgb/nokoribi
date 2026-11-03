@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
   address       TEXT,
   role          TEXT NOT NULL DEFAULT 'CLIENTE',
   points        INTEGER NOT NULL DEFAULT 0,
+  game_best     INTEGER NOT NULL DEFAULT 0,
   created_at    TEXT NOT NULL
 );
 
@@ -144,7 +145,6 @@ CREATE TABLE IF NOT EXISTS game_plays (
   id         TEXT PRIMARY KEY,
   user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   played_on  TEXT NOT NULL,
-  score      INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
 `;
@@ -251,7 +251,8 @@ async function migrate(pool: Pool): Promise<void> {
   await pool.query("ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS unit TEXT");
   await pool.query("ALTER TABLE products ADD COLUMN IF NOT EXISTS is_pizza_del_mes INTEGER NOT NULL DEFAULT 0");
   await pool.query("ALTER TABLE products ADD COLUMN IF NOT EXISTS stock INTEGER");
-  await pool.query("ALTER TABLE game_plays ADD COLUMN IF NOT EXISTS score INTEGER NOT NULL DEFAULT 0");
+  await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS game_best INTEGER NOT NULL DEFAULT 0");
+  await pool.query("ALTER TABLE game_plays DROP COLUMN IF EXISTS score");
 }
 
 async function seed(pool: Pool): Promise<void> {

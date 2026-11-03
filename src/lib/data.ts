@@ -277,20 +277,19 @@ export interface LeaderboardEntry {
 export const getGameLeaderboard = cache(
   async (): Promise<LeaderboardEntry[]> => {
     return query<LeaderboardEntry>(
-      `SELECT u.name, MAX(g.score) AS best
-       FROM game_plays g
-       JOIN users u ON u.id = g.user_id
-       GROUP BY u.id, u.name
-       ORDER BY best DESC, u.name ASC
+      `SELECT name, game_best AS best
+       FROM users
+       WHERE game_best > 0
+       ORDER BY game_best DESC, name ASC
        LIMIT 10`
     );
   }
 );
 
 export async function getUserBestScore(userId: string): Promise<number> {
-  const row = await queryOne<{ best: number }>(
-    "SELECT MAX(score) AS best FROM game_plays WHERE user_id = $1",
+  const row = await queryOne<{ game_best: number }>(
+    "SELECT game_best FROM users WHERE id = $1",
     [userId]
   );
-  return row?.best ?? 0;
+  return row?.game_best ?? 0;
 }

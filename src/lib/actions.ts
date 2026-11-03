@@ -772,12 +772,12 @@ export async function submitGameScoreAction(orders: number): Promise<GameResult>
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
 
-  // Récord personal previo (antes de registrar esta partida)
-  const before = await queryOne<{ best: number }>(
-    "SELECT MAX(score) AS best FROM game_plays WHERE user_id = $1",
+  // Récord personal actual (almacenado en users.game_best)
+  const u = await queryOne<{ game_best: number }>(
+    "SELECT game_best FROM users WHERE id = $1",
     [user.id]
   );
-  const prevBest = before?.best ?? 0;
+  const prevBest = u?.game_best ?? 0;
 
   if (safeOrders === 0) {
     return {
@@ -794,11 +794,13 @@ export async function submitGameScoreAction(orders: number): Promise<GameResult>
   );
   const firstPlay = !played;
 
-  // Registrar la partida (para el récord personal y el ranking)
-  await execute(
-    "INSERT INTO game_plays (id, user_id, played_on, score, created_at) VALUES ($1, $2, $3, $4, $5)",
-    [randomUUID(), user.id, today, safeOrders, now]
-  );
+  // Solo actualizar el récord si se supera el anterior
+  if (safeOrders > prevBest) {
+    await execute("UPDATE users SET game_best = $1 WHERE id = $2", [
+      safeOrders,
+      user.id,
+    ]);
+  }
 
   let points = 0;
   if (firstPlay) {
@@ -813,6 +815,11 @@ export async function submitGameScoreAction(orders: number): Promise<GameResult>
         [randomUUID(), user.id, points, "Juego: Pizza Catcher", now]
       );
     }
+    // Marcar la primera partida del día (para no volver a dar puntos hoy)
+    await execute(
+      "INSERT INTO game_plays (id, user_id, played_on, created_at) VALUES ($1, $2, $3, $4)",
+      [randomUUID(), user.id, today, now]
+    );
   }
 
   const personalBest = Math.max(prevBest, safeOrders);
