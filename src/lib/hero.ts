@@ -28,6 +28,12 @@ export const heroSlides: HeroSlide[] = [
     cta: { label: "Ver panadería", href: "/productos?categoria=PANADERIA" },
   },
   {
+    image: "/hero/untables.jpg",
+    title: "Untables artesanales",
+    subtitle: "Humus, pestos y mezcla de quesos para untar. El acompañamiento perfecto para tu pizza.",
+    cta: { label: "Ver untables", href: "/productos?categoria=UNTABLES" },
+  },
+  {
     image: "/hero/3.jpg",
     title: "Gana puntos en cada pedido",
     subtitle: "Canjéalos por descuentos, envío gratis y más recompensas.",

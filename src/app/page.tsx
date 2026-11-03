@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, Gift, Snowflake, Truck } from "lucide-react";
 import { getProducts } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { ProductCard } from "@/components/product-card";
 import { HeroCarousel } from "@/components/hero-carousel";
 
 export default async function Home() {
   const products = await getProducts();
   const featured = products.slice(0, 6);
+  const user = await getCurrentUser();
 
   return (
     <>
@@ -78,24 +80,26 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="overflow-hidden rounded-3xl bg-foreground px-6 py-12 text-center text-background sm:px-12">
-          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            ¿Tienes antojo?
-          </h2>
-          <p className="mx-auto mt-3 max-w-md text-background/70">
-            Crea tu cuenta, arma tu pizza ideal y empieza a acumular puntos desde
-            tu primer pedido.
-          </p>
-          <Link
-            href="/registro"
-            className="mt-7 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-white transition-colors hover:bg-accent-hover"
-          >
-            Crear cuenta gratis <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
+      {/* CTA (solo para visitantes no logueados) */}
+      {!user && (
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <div className="overflow-hidden rounded-3xl bg-foreground px-6 py-12 text-center text-background sm:px-12">
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+              ¿Tienes antojo?
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-background/70">
+              Crea tu cuenta, arma tu pizza ideal y empieza a acumular puntos desde
+              tu primer pedido.
+            </p>
+            <Link
+              href="/registro"
+              className="mt-7 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-white transition-colors hover:bg-accent-hover"
+            >
+              Crear cuenta gratis <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   );
 }
