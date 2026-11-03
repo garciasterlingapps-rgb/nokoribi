@@ -155,6 +155,13 @@ CREATE TABLE IF NOT EXISTS registration_attempts (
   email      TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id         TEXT PRIMARY KEY,
+  ip         TEXT NOT NULL,
+  email      TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
 `;
 
 // Imágenes de productos (archivos locales en public/images/products/).

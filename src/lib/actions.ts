@@ -41,6 +41,10 @@ export interface ActionState {
 const REGISTRATION_LIMIT = 5;
 const REGISTRATION_WINDOW_MS = 60 * 60 * 1000; // 1 hora
 
+// Rate-limiting de login: máx. N intentos fallidos por IP/email en una ventana.
+const LOGIN_LIMIT = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
+
 async function getClientIp(): Promise<string> {
   try {
     const h = await headers();
@@ -128,6 +132,13 @@ const loginSchema = z.object({
   password: z.string().min(1, "Escribe tu contraseña"),
 });
 
+async function recordFailedLogin(ip: string, email: string): Promise<void> {
+  await execute(
+    "INSERT INTO login_attempts (id, ip, email, created_at) VALUES ($1, $2, $3, $4)",
+    [randomUUID(), ip, email, new Date().toISOString()]
+  );
+}
+
 export async function loginAction(
   _prev: ActionState,
   formData: FormData
@@ -141,15 +152,50 @@ export async function loginAction(
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   }
 
+  const email = parsed.data.email.toLowerCase();
+  const ip = await getClientIp();
+  const windowStart = new Date(Date.now() - LOGIN_WINDOW_MS).toISOString();
+
+  // Bloquear si hay demasiados intentos fallidos recientes (por IP o por email)
+  const byIp = await queryOne<{ n: number }>(
+    "SELECT COUNT(*) AS n FROM login_attempts WHERE ip = $1 AND created_at > $2",
+    [ip, windowStart]
+  );
+  const byEmail = await queryOne<{ n: number }>(
+    "SELECT COUNT(*) AS n FROM login_attempts WHERE email = $1 AND created_at > $2",
+    [email, windowStart]
+  );
+  if ((byIp?.n ?? 0) >= LOGIN_LIMIT || (byEmail?.n ?? 0) >= LOGIN_LIMIT) {
+    return {
+      error: "Demasiados intentos fallidos. Intenta de nuevo en unos minutos.",
+    };
+  }
+
   const row = await queryOne<{ id: string; password_hash: string }>(
     "SELECT * FROM users WHERE email = $1",
-    [parsed.data.email.toLowerCase()]
+    [email]
   );
 
-  if (!row) return { error: "Correo o contraseña incorrectos" };
+  if (!row) {
+    await recordFailedLogin(ip, email);
+    return { error: "Correo o contraseña incorrectos" };
+  }
 
   const ok = await verifyPassword(parsed.data.password, row.password_hash);
-  if (!ok) return { error: "Correo o contraseña incorrectos" };
+  if (!ok) {
+    await recordFailedLogin(ip, email);
+    return { error: "Correo o contraseña incorrectos" };
+  }
+
+  // Login exitoso: limpiar los intentos fallidos de este email/IP
+  await execute("DELETE FROM login_attempts WHERE email = $1 OR ip = $2", [
+    email,
+    ip,
+  ]);
+  await execute(
+    "DELETE FROM login_attempts WHERE created_at < $1",
+    [new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()]
+  );
 
   const token = await createSession(row.id);
   await setSessionCookie(token);
