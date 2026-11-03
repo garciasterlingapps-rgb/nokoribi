@@ -347,17 +347,8 @@ export async function placeOrderAction(
     );
   }
 
-  // Puntos ganados por la compra
-  if (pointsEarned > 0) {
-    await execute("UPDATE users SET points = points + $1 WHERE id = $2", [
-      pointsEarned,
-      user.id,
-    ]);
-    await execute(
-      "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
-      [randomUUID(), user.id, pointsEarned, "Compra", now]
-    );
-  }
+  // NOTA: los puntos se otorgan al entregar el pedido (en
+  // updateOrderStatusAction), no al crearlo, para evitar ganar puntos sin pagar.
 
   revalidatePath("/cuenta");
   revalidatePath("/admin");
@@ -390,10 +381,64 @@ export async function updateOrderStatusAction(
     return { error: "Datos inválidos" };
   }
 
-  await execute("UPDATE orders SET status = $1 WHERE id = $2", [status, orderId]);
+  const order = await queryOne<{
+    status: string;
+    points_earned: number;
+    points_awarded: number;
+    user_id: string;
+  }>(
+    "SELECT status, points_earned, points_awarded, user_id FROM orders WHERE id = $1",
+    [orderId]
+  );
+  if (!order) return { error: "Pedido no encontrado" };
+
+  const now = new Date().toISOString();
+
+  // Otorgar puntos la primera vez que el pedido pasa a "ENTREGADO"
+  if (
+    status === "ENTREGADO" &&
+    order.points_awarded === 0 &&
+    order.points_earned > 0
+  ) {
+    await execute("UPDATE users SET points = points + $1 WHERE id = $2", [
+      order.points_earned,
+      order.user_id,
+    ]);
+    await execute(
+      "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
+      [randomUUID(), order.user_id, order.points_earned, "Compra", now]
+    );
+  }
+
+  // Revocar puntos si se cancela un pedido que ya había sido entregado
+  if (
+    status === "CANCELADO" &&
+    order.points_awarded === 1 &&
+    order.points_earned > 0
+  ) {
+    await execute(
+      "UPDATE users SET points = GREATEST(0, points - $1) WHERE id = $2",
+      [order.points_earned, order.user_id]
+    );
+    await execute(
+      "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
+      [randomUUID(), order.user_id, -order.points_earned, "Reversión de pedido cancelado", now]
+    );
+  }
+
+  const pointsAwarded =
+    status === "ENTREGADO" ? 1 : status === "CANCELADO" ? 0 : order.points_awarded;
+
+  await execute("UPDATE orders SET status = $1, points_awarded = $2 WHERE id = $3", [
+    status,
+    pointsAwarded,
+    orderId,
+  ]);
 
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
+  revalidatePath("/cuenta");
+  revalidatePath("/recompensas");
   return { success: "Estado actualizado" };
 }
 

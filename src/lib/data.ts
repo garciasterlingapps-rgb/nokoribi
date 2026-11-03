@@ -86,6 +86,7 @@ export interface OrderWithDetails {
   shipping: number;
   points_earned: number;
   points_spent: number;
+  points_awarded: number;
   reward_name: string | null;
   total: number;
   payment_method: string;

@@ -88,8 +88,20 @@ export default async function AccountPage() {
                   <div className="text-right">
                     <p className="font-semibold">{formatCOP(order.total)}</p>
                     {order.points_earned > 0 && (
-                      <p className="text-xs text-accent">
-                        +{order.points_earned} pts
+                      <p
+                        className={`text-xs ${
+                          order.points_awarded === 1
+                            ? "text-accent"
+                            : order.status === "CANCELADO"
+                              ? "text-muted line-through"
+                              : "text-muted"
+                        }`}
+                      >
+                        {order.points_awarded === 1
+                          ? `+${order.points_earned} pts`
+                          : order.status === "CANCELADO"
+                            ? "0 pts"
+                            : `+${order.points_earned} pts al entregar`}
                       </p>
                     )}
                   </div>

@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping         INTEGER NOT NULL DEFAULT 0,
   points_earned    INTEGER NOT NULL DEFAULT 0,
   points_spent     INTEGER NOT NULL DEFAULT 0,
+  points_awarded   INTEGER NOT NULL DEFAULT 0,
   reward_name      TEXT,
   total            INTEGER NOT NULL,
   payment_method   TEXT NOT NULL,
@@ -253,6 +254,7 @@ async function migrate(pool: Pool): Promise<void> {
   await pool.query("ALTER TABLE products ADD COLUMN IF NOT EXISTS stock INTEGER");
   await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS game_best INTEGER NOT NULL DEFAULT 0");
   await pool.query("ALTER TABLE game_plays DROP COLUMN IF EXISTS score");
+  await pool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS points_awarded INTEGER NOT NULL DEFAULT 0");
 }
 
 async function seed(pool: Pool): Promise<void> {

@@ -131,7 +131,13 @@ export default async function OrderPage({
           {order.points_earned > 0 && (
             <div className="flex justify-between text-accent">
               <dt>Puntos ganados</dt>
-              <dd>+{order.points_earned}</dd>
+              <dd>
+                {order.points_awarded === 1
+                  ? `+${order.points_earned}`
+                  : order.status === "CANCELADO"
+                    ? "0"
+                    : `+${order.points_earned} (al entregar)`}
+              </dd>
             </div>
           )}
         </dl>

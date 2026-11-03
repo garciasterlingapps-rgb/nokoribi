@@ -215,7 +215,7 @@ export function CheckoutForm({
         <div className="mt-4 space-y-2">
           <div className="flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2 text-sm text-accent">
             <span className="text-lg">🎁</span>
-            Ganarás <strong>{pointsPreview} puntos</strong> con este pedido
+            Ganarás <strong>{pointsPreview} puntos</strong> al entregar tu pedido
           </div>
           {pointsSpent > 0 && (
             <div className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-700">
