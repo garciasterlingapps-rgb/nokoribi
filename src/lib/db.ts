@@ -340,14 +340,23 @@ async function seed(pool: Pool): Promise<void> {
     "UPDATE products SET description = 'Pizza de 30 cm de diámetro. ' || description WHERE category = 'PIZZA' AND description NOT LIKE '%30 cm%'"
   );
 
-  // Receta de la Pizza Vegetariana
-  await pool.query(
-    "DELETE FROM product_ingredients WHERE product_id = (SELECT id FROM products WHERE name = 'Pizza Vegetariana')"
-  );
+  // Receta de la Pizza Vegetariana (idempotente y segura ante concurrencia)
   for (const ingName of VEGETARIANA_INGREDIENTS) {
     await pool.query(
-      "INSERT INTO product_ingredients (product_id, ingredient_id) SELECT p.id, i.id FROM products p, ingredients i WHERE p.name = 'Pizza Vegetariana' AND i.name = $1",
+      `INSERT INTO product_ingredients (product_id, ingredient_id)
+       SELECT p.id, i.id FROM products p, ingredients i
+       WHERE p.name = 'Pizza Vegetariana' AND i.name = $1
+       ON CONFLICT (product_id, ingredient_id) DO NOTHING`,
       [ingName]
+    );
+  }
+  // Eliminar los ingredientes que ya no forman parte de la receta vegetariana.
+  for (const oldName of ["Champiñones", "Cebolla caramelizada", "Maíz dulce"]) {
+    await pool.query(
+      `DELETE FROM product_ingredients
+       WHERE product_id = (SELECT id FROM products WHERE name = 'Pizza Vegetariana')
+         AND ingredient_id = (SELECT id FROM ingredients WHERE name = $1)`,
+      [oldName]
     );
   }
 
