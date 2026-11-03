@@ -1,4 +1,4 @@
-import { Pool, types } from "pg";
+import { Pool, types, type PoolClient } from "pg";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 
@@ -415,4 +415,28 @@ export async function execute(
   await ensureDatabase();
   const res = await getPool().query(text, params);
   return res.rowCount ?? 0;
+}
+
+// Ejecuta una secuencia de consultas dentro de una transacción atómica.
+// Si `fn` lanza un error, se hace ROLLBACK y se propaga el error.
+export async function withTransaction<T>(
+  fn: (client: PoolClient) => Promise<T>
+): Promise<T> {
+  await ensureDatabase();
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // ignora errores de rollback
+    }
+    throw err;
+  } finally {
+    client.release();
+  }
 }

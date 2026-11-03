@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { randomUUID } from "node:crypto";
-import { queryOne, execute } from "@/lib/db";
+import { queryOne, execute, withTransaction } from "@/lib/db";
 import {
   createSession,
   setSessionCookie,
@@ -334,71 +334,83 @@ export async function placeOrderAction(
   const orderId = randomUUID();
   const now = new Date().toISOString();
 
-  // Descontar los puntos de la recompensa ANTES de crear el pedido
-  if (reward) {
-    const deducted = await execute(
-      "UPDATE users SET points = points - $1 WHERE id = $2 AND points >= $1",
-      [reward.cost_points, user.id]
-    );
-    if (deducted === 0) {
-      return { error: "No tienes puntos suficientes para esa recompensa" };
-    }
+  // Ejecutar todas las escrituras de forma atómica (si algo falla, se revierte todo)
+  let ok = false;
+  try {
+    ok = await withTransaction(async (client) => {
+      // Descontar los puntos de la recompensa
+      if (reward) {
+        const res = await client.query(
+          "UPDATE users SET points = points - $1 WHERE id = $2 AND points >= $1",
+          [reward.cost_points, user.id]
+        );
+        if (res.rowCount === 0) return false;
+      }
+
+      await client.query(
+        `INSERT INTO orders
+          (id, user_id, status, subtotal, discount, shipping, points_earned, points_spent, reward_name, total, payment_method, delivery_address, phone, note, created_at)
+         VALUES ($1, $2, 'RECIBIDO', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [
+          orderId,
+          user.id,
+          subtotal,
+          discount,
+          shipping,
+          pointsEarned,
+          pointsSpent,
+          reward ? reward.name : null,
+          total,
+          parsed.data.paymentMethod,
+          parsed.data.deliveryAddress,
+          parsed.data.phone,
+          parsed.data.note || null,
+          now,
+        ]
+      );
+
+      for (const line of lines) {
+        const itemId = randomUUID();
+        await client.query(
+          "INSERT INTO order_items (id, order_id, product_id, quantity, unit_price) VALUES ($1, $2, $3, $4, $5)",
+          [itemId, orderId, line.productId, line.quantity, line.unitPrice]
+        );
+        for (const extraId of line.extraIds) {
+          await client.query(
+            "INSERT INTO order_item_ingredients (order_item_id, ingredient_id) VALUES ($1, $2)",
+            [itemId, extraId]
+          );
+        }
+
+        // Descontar el stock de la Pizza del Mes
+        if (line.isPizzaDelMes === 1) {
+          await client.query(
+            "UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2 AND is_pizza_del_mes = 1",
+            [line.quantity, line.productId]
+          );
+        }
+      }
+
+      // Registrar el canje de la recompensa
+      if (reward) {
+        await client.query(
+          "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
+          [randomUUID(), user.id, -reward.cost_points, `Canje aplicado: ${reward.name}`, now]
+        );
+        await client.query(
+          "INSERT INTO redemptions (id, user_id, reward_id, status, created_at) VALUES ($1, $2, $3, 'APLICADO', $4)",
+          [randomUUID(), user.id, reward.id, now]
+        );
+      }
+
+      return true;
+    });
+  } catch {
+    return { error: "No se pudo procesar tu pedido. Intenta de nuevo." };
   }
 
-  await execute(
-    `INSERT INTO orders
-      (id, user_id, status, subtotal, discount, shipping, points_earned, points_spent, reward_name, total, payment_method, delivery_address, phone, note, created_at)
-     VALUES ($1, $2, 'RECIBIDO', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-    [
-      orderId,
-      user.id,
-      subtotal,
-      discount,
-      shipping,
-      pointsEarned,
-      pointsSpent,
-      reward ? reward.name : null,
-      total,
-      parsed.data.paymentMethod,
-      parsed.data.deliveryAddress,
-      parsed.data.phone,
-      parsed.data.note || null,
-      now,
-    ]
-  );
-
-  for (const line of lines) {
-    const itemId = randomUUID();
-    await execute(
-      "INSERT INTO order_items (id, order_id, product_id, quantity, unit_price) VALUES ($1, $2, $3, $4, $5)",
-      [itemId, orderId, line.productId, line.quantity, line.unitPrice]
-    );
-    for (const extraId of line.extraIds) {
-      await execute(
-        "INSERT INTO order_item_ingredients (order_item_id, ingredient_id) VALUES ($1, $2)",
-        [itemId, extraId]
-      );
-    }
-
-    // Descontar el stock de la Pizza del Mes
-    if (line.isPizzaDelMes === 1) {
-      await execute(
-        "UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2 AND is_pizza_del_mes = 1",
-        [line.quantity, line.productId]
-      );
-    }
-  }
-
-  // Registrar el canje de la recompensa
-  if (reward) {
-    await execute(
-      "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
-      [randomUUID(), user.id, -reward.cost_points, `Canje aplicado: ${reward.name}`, now]
-    );
-    await execute(
-      "INSERT INTO redemptions (id, user_id, reward_id, status, created_at) VALUES ($1, $2, $3, 'APLICADO', $4)",
-      [randomUUID(), user.id, reward.id, now]
-    );
+  if (!ok) {
+    return { error: "No tienes puntos suficientes para esa recompensa" };
   }
 
   // NOTA: los puntos se otorgan al entregar el pedido (en
