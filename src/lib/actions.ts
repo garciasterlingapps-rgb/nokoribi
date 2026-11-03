@@ -761,6 +761,7 @@ export interface GameResult {
   firstPlay?: boolean;
   pointsEarned?: number;
   orders?: number;
+  personalBest?: number;
 }
 
 export async function submitGameScoreAction(orders: number): Promise<GameResult> {
@@ -768,40 +769,56 @@ export async function submitGameScoreAction(orders: number): Promise<GameResult>
   if (!user) return { needsLogin: true };
 
   const safeOrders = Math.max(0, Math.min(100, Math.floor(orders)));
-  if (safeOrders === 0) {
-    return { orders: 0, pointsEarned: 0, firstPlay: false };
-  }
-
   const today = new Date().toISOString().slice(0, 10);
+  const now = new Date().toISOString();
+
+  // Récord personal previo (antes de registrar esta partida)
+  const before = await queryOne<{ best: number }>(
+    "SELECT MAX(score) AS best FROM game_plays WHERE user_id = $1",
+    [user.id]
+  );
+  const prevBest = before?.best ?? 0;
+
+  if (safeOrders === 0) {
+    return {
+      orders: 0,
+      pointsEarned: 0,
+      firstPlay: false,
+      personalBest: prevBest,
+    };
+  }
 
   const played = await queryOne<{ x: number }>(
     "SELECT 1 AS x FROM game_plays WHERE user_id = $1 AND played_on = $2",
     [user.id, today]
   );
-  if (played) {
-    return { firstPlay: false, orders: safeOrders, pointsEarned: 0 };
-  }
+  const firstPlay = !played;
 
-  const points = safeOrders * (await getGamePointsPerPizza());
-  const now = new Date().toISOString();
-
-  if (points > 0) {
-    await execute("UPDATE users SET points = points + $1 WHERE id = $2", [
-      points,
-      user.id,
-    ]);
-    await execute(
-      "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
-      [randomUUID(), user.id, points, "Juego: Pizza Catcher", now]
-    );
-  }
-
+  // Registrar la partida (para el récord personal y el ranking)
   await execute(
-    "INSERT INTO game_plays (id, user_id, played_on, created_at) VALUES ($1, $2, $3, $4)",
-    [randomUUID(), user.id, today, now]
+    "INSERT INTO game_plays (id, user_id, played_on, score, created_at) VALUES ($1, $2, $3, $4, $5)",
+    [randomUUID(), user.id, today, safeOrders, now]
   );
+
+  let points = 0;
+  if (firstPlay) {
+    points = safeOrders * (await getGamePointsPerPizza());
+    if (points > 0) {
+      await execute("UPDATE users SET points = points + $1 WHERE id = $2", [
+        points,
+        user.id,
+      ]);
+      await execute(
+        "INSERT INTO point_transactions (id, user_id, points, reason, created_at) VALUES ($1, $2, $3, $4, $5)",
+        [randomUUID(), user.id, points, "Juego: Pizza Catcher", now]
+      );
+    }
+  }
+
+  const personalBest = Math.max(prevBest, safeOrders);
 
   revalidatePath("/cuenta");
   revalidatePath("/recompensas");
-  return { firstPlay: true, orders: safeOrders, pointsEarned: points };
+  revalidatePath("/juego");
+  return { firstPlay, orders: safeOrders, pointsEarned: points, personalBest };
 }

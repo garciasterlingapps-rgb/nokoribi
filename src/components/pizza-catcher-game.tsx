@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Gamepad2, Heart, Volume2, VolumeX } from "lucide-react";
 import { submitGameScoreAction } from "@/lib/actions";
 import type { GameResult } from "@/lib/actions";
+import type { LeaderboardEntry } from "@/lib/data";
 import { TOPPINGS } from "@/lib/toppings";
 import {
   initAudio,
@@ -124,9 +125,13 @@ function ToppingIcon({
 export function PizzaCatcherGame({
   loggedIn,
   pointsPerPizza,
+  personalBest,
+  leaderboard,
 }: {
   loggedIn: boolean;
   pointsPerPizza: number;
+  personalBest: number;
+  leaderboard: LeaderboardEntry[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<"idle" | "playing" | "over">("idle");
@@ -140,6 +145,8 @@ export function PizzaCatcherGame({
   const [submitting, setSubmitting] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
   const [showLegend, setShowLegend] = useState(false);
+  const [bestRecord, setBestRecord] = useState(personalBest);
+  const [isNewRecord, setIsNewRecord] = useState(false);
 
   const gsRef = useRef<GameState | null>(null);
   const imagesRef = useRef<Record<string, HTMLImageElement | null>>({});
@@ -278,16 +285,23 @@ export function PizzaCatcherGame({
     async (finalScore: number) => {
       if (!loggedIn) return;
       setSubmitting(true);
+      const isNewBest = finalScore > bestRecord && finalScore > 0;
       try {
         const res = await submitGameScoreAction(finalScore);
         setResult(res);
+        if (res.personalBest != null) {
+          const newBest = res.personalBest;
+          setBestRecord((prev) => Math.max(prev, newBest));
+        }
+        setIsNewRecord(isNewBest);
       } catch {
         setResult({ error: "No se pudo registrar tu puntaje" });
+        setIsNewRecord(false);
       } finally {
         setSubmitting(false);
       }
     },
-    [loggedIn]
+    [loggedIn, bestRecord]
   );
 
   const loop = useCallback(
@@ -435,6 +449,7 @@ export function PizzaCatcherGame({
     gsRef.current = gs;
     setResult(null);
     setSubmitting(false);
+    setIsNewRecord(false);
     setPhase("playing");
     syncHud(gs);
 
@@ -575,6 +590,13 @@ export function PizzaCatcherGame({
               Ver ingredientes
             </button>
 
+            {loggedIn && (
+              <p className="text-xs text-white/70">
+                🏆 Tu récord: <strong>{bestRecord}</strong>{" "}
+                {bestRecord === 1 ? "pizza" : "pizzas"}
+              </p>
+            )}
+
             {loggedIn ? (
               <p className="text-xs text-white/60">
                 🎁 Solo ganas puntos en tu primera partida del día.
@@ -600,6 +622,12 @@ export function PizzaCatcherGame({
               <strong className="text-accent">{hud.score}</strong>{" "}
               {hud.score === 1 ? "pizza" : "pizzas"} 🍕
             </p>
+
+            {isNewRecord && (
+              <p className="rounded-xl bg-yellow-500/20 px-4 py-2 text-sm font-semibold text-yellow-300">
+                🏆 ¡Nuevo récord personal!
+              </p>
+            )}
 
             {loggedIn ? (
               <div className="text-sm">
@@ -691,6 +719,41 @@ export function PizzaCatcherGame({
         Controles: flechas ← → o arrastra con el dedo. Pierdes un corazón al
         atrapar un ingrediente equivocado.
       </p>
+
+      {/* Top 10 */}
+      {leaderboard.length > 0 && (
+        <div className="mt-6 rounded-2xl border border-line bg-card p-4">
+          <h2 className="font-display text-lg font-semibold">
+            🏆 Top 10 jugadores
+          </h2>
+          <p className="text-xs text-muted">
+            Mejores récords de todos los jugadores
+          </p>
+          <ol className="mt-3 space-y-1">
+            {leaderboard.map((entry, i) => {
+              const medal =
+                i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+              return (
+                <li
+                  key={i}
+                  className="flex items-center justify-between rounded-lg px-3 py-1.5 odd:bg-black/[0.03]"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-6 text-center text-sm font-semibold text-muted">
+                      {medal ?? i + 1}
+                    </span>
+                    <span className="truncate font-medium">{entry.name}</span>
+                  </span>
+                  <span className="flex items-center gap-1 font-semibold text-accent">
+                    {entry.best}
+                    <span className="text-sm">🍕</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

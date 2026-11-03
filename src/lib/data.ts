@@ -264,3 +264,33 @@ export const getAllRedemptions = cache(async (): Promise<Redemption[]> => {
      ORDER BY r.created_at DESC`
   );
 });
+
+// ---------------------------------------------------------------------------
+// Juego (Pizza Catcher)
+// ---------------------------------------------------------------------------
+
+export interface LeaderboardEntry {
+  name: string;
+  best: number;
+}
+
+export const getGameLeaderboard = cache(
+  async (): Promise<LeaderboardEntry[]> => {
+    return query<LeaderboardEntry>(
+      `SELECT u.name, MAX(g.score) AS best
+       FROM game_plays g
+       JOIN users u ON u.id = g.user_id
+       GROUP BY u.id, u.name
+       ORDER BY best DESC, u.name ASC
+       LIMIT 10`
+    );
+  }
+);
+
+export async function getUserBestScore(userId: string): Promise<number> {
+  const row = await queryOne<{ best: number }>(
+    "SELECT MAX(score) AS best FROM game_plays WHERE user_id = $1",
+    [userId]
+  );
+  return row?.best ?? 0;
+}
