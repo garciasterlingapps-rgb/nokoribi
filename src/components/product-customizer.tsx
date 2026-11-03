@@ -7,6 +7,7 @@ import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Ingredient, Product } from "@/lib/types";
 import { formatCOP } from "@/lib/money";
 import { useCart } from "@/components/cart-provider";
+import { ProductImage } from "@/components/product-image";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   PIZZA: "🍕",
@@ -98,17 +99,16 @@ export function ProductCustomizer({
         {/* Visual */}
         <div>
           <div className="relative aspect-square overflow-hidden rounded-3xl bg-gradient-to-br from-accent-soft to-background">
-            {product.image_url ? (
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-[8rem]">
-                {CATEGORY_EMOJI[product.category] ?? "🍴"}
-              </div>
-            )}
+            <ProductImage
+              src={product.image_url}
+              alt={product.name}
+              className="h-full w-full object-cover"
+              fallback={
+                <div className="flex h-full w-full items-center justify-center text-[8rem]">
+                  {CATEGORY_EMOJI[product.category] ?? "🍴"}
+                </div>
+              }
+            />
           </div>
         </div>
 

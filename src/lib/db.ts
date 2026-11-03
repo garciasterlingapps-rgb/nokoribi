@@ -155,6 +155,12 @@ const PRODUCT_IMAGES: Record<string, string> = {
   "Pizza Lomo Curado": "/images/products/pizza-lomo-curado.webp",
   "Churros (x6)": "/images/products/churros.webp",
   "Cinnamon Rolls (x4)": "/images/products/cinnamon-rolls.webp",
+  Humus: "/images/products/humus.webp",
+  "Pesto rojo con pimientos asados":
+    "/images/products/pesto-rojo-pimientos-asados.webp",
+  "Pesto normal": "/images/products/pesto-normal.webp",
+  "Mezcla de 4 quesos untable": "/images/products/mezcla-4-quesos.webp",
+  "Pizza del Mes": "/images/products/pizza-del-mes.webp",
 };
 
 // Producto especial "Arma tu propia pizza" (constructor interactivo).
@@ -216,11 +222,11 @@ const PRODUCTS: ProductDef[] = [
   { name: "Churros (x6)", category: "PANADERIA", price: 12000, image: PRODUCT_IMAGES["Churros (x6)"], desc: "Churros artesanales listos para hornear o freír. Congelados y empacados al vacío.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Cinnamon Rolls (x4)", category: "PANADERIA", price: 15000, image: PRODUCT_IMAGES["Cinnamon Rolls (x4)"], desc: "Rollos de canela con glaseado, listos para hornear. Congelados y empacados al vacío.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: BUILD_YOUR_OWN_PIZZA_NAME, category: "PIZZA", price: BUILD_YOUR_OWN_PIZZA_PRICE, image: "/images/toppings/pizza-base.png", desc: BUILD_YOUR_OWN_PIZZA_DESC, isBuilder: 1, isPizzaDelMes: 0, stock: null },
-  { name: "Humus", category: "UNTABLES", price: 12000, image: null, desc: "Humus de garbanzos, cremoso y con toque de limón y tahini.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Pesto rojo con pimientos asados", category: "UNTABLES", price: 14000, image: null, desc: "Pesto rojo con pimientos asados, frutos secos y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Pesto normal", category: "UNTABLES", price: 12000, image: null, desc: "Pesto clásico de albahaca, piñones, ajo y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Mezcla de 4 quesos untable", category: "UNTABLES", price: 15000, image: null, desc: "Mezcla cremosa de 4 quesos, ideal para untar.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Pizza del Mes", category: "PIZZA", price: 22000, image: null, desc: `Nuestra pizza especial de este mes (${DIAMETRO}). Edición limitada.`, isBuilder: 0, isPizzaDelMes: 1, stock: 50 },
+  { name: "Humus", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Humus"], desc: "Humus de garbanzos, cremoso y con toque de limón y tahini.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pesto rojo con pimientos asados", category: "UNTABLES", price: 14000, image: PRODUCT_IMAGES["Pesto rojo con pimientos asados"], desc: "Pesto rojo con pimientos asados, frutos secos y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pesto normal", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Pesto normal"], desc: "Pesto clásico de albahaca, piñones, ajo y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Mezcla de 4 quesos untable", category: "UNTABLES", price: 15000, image: PRODUCT_IMAGES["Mezcla de 4 quesos untable"], desc: "Mezcla cremosa de 4 quesos, ideal para untar.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pizza del Mes", category: "PIZZA", price: 22000, image: PRODUCT_IMAGES["Pizza del Mes"], desc: `Nuestra pizza especial de este mes (${DIAMETRO}). Edición limitada.`, isBuilder: 0, isPizzaDelMes: 1, stock: 50 },
 ];
 
 // Garantiza que el esquema exista y siembra los datos iniciales (idempotente).
