@@ -163,9 +163,17 @@ export async function updateProfileAction(
 const cartItemSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().min(1).max(20),
-  extraIds: z.array(z.string()),
+  extraIds: z
+    .array(z.string())
+    .max(30, "Demasiados ingredientes extra en un producto"),
 });
-const cartSchema = z.array(cartItemSchema).min(1, "El carrito está vacío");
+const cartSchema = z
+  .array(cartItemSchema)
+  .min(1, "El carrito está vacío")
+  .max(30, "Demasiados productos en el carrito");
+
+// Tope de seguridad para el subtotal de un pedido (evita pedidos absurdos).
+const MAX_ORDER_SUBTOTAL = 5_000_000;
 
 const checkoutSchema = z.object({
   cart: z.string().min(1),
@@ -255,6 +263,10 @@ export async function placeOrderAction(
       isPizzaDelMes: product.is_pizza_del_mes,
     });
     subtotal += unitPrice * item.quantity;
+  }
+
+  if (subtotal > MAX_ORDER_SUBTOTAL) {
+    return { error: "El monto del pedido supera el límite permitido" };
   }
 
   // Recompensa opcional aplicada en el checkout
