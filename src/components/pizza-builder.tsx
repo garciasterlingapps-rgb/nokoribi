@@ -57,6 +57,9 @@ interface PlacedTopping {
 const TOPPING_COUNT = 10;
 const TOPPING_SIZE = 14; // % del ancho de la pizza (uniforme para todos)
 
+// Máximo de ingredientes extra por pizza (coincide con el límite del servidor).
+const MAX_EXTRAS = 10;
+
 // Posiciones aleatorias dentro del círculo de la pizza, sin solaparse (% desde el centro).
 function randomPositions(count: number): { x: number; y: number }[] {
   const drawn = TOPPING_SIZE;
@@ -98,6 +101,7 @@ export function PizzaBuilder({
     return acc + (ing?.extra_price ?? 0) * p.quantity;
   }, 0);
   const unitPrice = product.base_price + extrasTotal;
+  const totalExtras = placed.reduce((s, p) => s + p.quantity, 0);
 
   const changeQty = (id: string, delta: number) => {
     setPlaced((prev) => {
@@ -105,12 +109,19 @@ export function PizzaBuilder({
       if (existing) {
         const qty = existing.quantity + delta;
         if (qty <= 0) return prev.filter((p) => p.id !== id);
+        if (delta > 0) {
+          const total = prev.reduce((s, p) => s + p.quantity, 0);
+          if (total >= MAX_EXTRAS) return prev; // ya en el tope
+        }
         return prev.map((p) =>
-          p.id === id ? { ...p, quantity: Math.min(qty, 20) } : p
+          p.id === id ? { ...p, quantity: Math.min(qty, MAX_EXTRAS) } : p
         );
       }
 
       if (delta <= 0) return prev;
+
+      const total = prev.reduce((s, p) => s + p.quantity, 0);
+      if (total >= MAX_EXTRAS) return prev; // ya en el tope
 
       const ing = allIngredients.find((i) => i.id === id);
       const visual = ing ? getToppingVisual(ing.name) : undefined;
@@ -180,8 +191,8 @@ export function PizzaBuilder({
             <div className="mt-3 lg:mt-4 lg:w-full lg:max-w-md">
               <p className="text-center text-xs text-muted lg:text-sm">
                 {placed.length === 0
-                  ? "Elige tus ingredientes 👇"
-                  : `${placed.reduce((s, p) => s + p.quantity, 0)} porción(es) agregadas`}
+                  ? `Elige tus ingredientes (máx. ${MAX_EXTRAS}) 👇`
+                  : `${placed.reduce((s, p) => s + p.quantity, 0)}/${MAX_EXTRAS} porciones agregadas`}
               </p>
               <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-line bg-card px-4 py-3 lg:px-5 lg:py-4">
                 <div>
@@ -275,7 +286,8 @@ export function PizzaBuilder({
                     <button
                       type="button"
                       onClick={() => changeQty(ing.id, 1)}
-                      className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover"
+                      disabled={totalExtras >= MAX_EXTRAS}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={`Agregar ${ing.name}`}
                     >
                       <Plus className="h-3.5 w-3.5" />

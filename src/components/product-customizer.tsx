@@ -21,6 +21,9 @@ const CATEGORY_LABEL: Record<string, string> = {
   UNTABLES: "Untable",
 };
 
+// Máximo de ingredientes extra por producto (coincide con el límite del servidor).
+const MAX_EXTRAS = 10;
+
 export function ProductCustomizer({
   product,
   allIngredients,
@@ -47,14 +50,22 @@ export function ProductCustomizer({
   const lineTotal = unitPrice * quantity;
   const soldOut =
     product.is_pizza_del_mes === 1 && (product.stock ?? 0) <= 0;
+  const totalExtras = Object.values(selected).reduce((a, q) => a + q, 0);
 
   const changeQty = (id: string, delta: number) => {
     setSelected((prev) => {
       const next = { ...prev };
       const current = next[id] ?? 0;
       const val = current + delta;
-      if (val <= 0) delete next[id];
-      else next[id] = Math.min(val, 20);
+      if (val <= 0) {
+        delete next[id];
+        return next;
+      }
+      if (delta > 0) {
+        const total = Object.values(next).reduce((a, q) => a + q, 0);
+        if (total >= MAX_EXTRAS) return prev; // ya en el tope
+      }
+      next[id] = Math.min(val, MAX_EXTRAS);
       return next;
     });
     setAdded(false);
@@ -158,7 +169,12 @@ export function ProductCustomizer({
 
           {isPizza && extras.length > 0 && (
             <div className="mt-6">
-              <p className="text-sm font-semibold">Agregar ingredientes</p>
+              <p className="text-sm font-semibold">
+                Agregar ingredientes
+                <span className="ml-1 font-normal text-muted">
+                  (máx. {MAX_EXTRAS})
+                </span>
+              </p>
               <div className="mt-3 space-y-2">
                 {extras.map((i) => {
                   const qty = selected[i.id] ?? 0;
@@ -187,7 +203,8 @@ export function ProductCustomizer({
                         <button
                           type="button"
                           onClick={() => changeQty(i.id, 1)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover"
+                          disabled={totalExtras >= MAX_EXTRAS}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
                           aria-label={`Agregar ${i.name}`}
                         >
                           <Plus className="h-4 w-4" />
