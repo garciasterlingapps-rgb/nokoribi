@@ -165,7 +165,7 @@ const cartItemSchema = z.object({
   quantity: z.number().int().min(1).max(20),
   extraIds: z
     .array(z.string())
-    .max(30, "Demasiados ingredientes extra en un producto"),
+    .max(10, "Máximo 10 ingredientes extra por producto"),
 });
 const cartSchema = z
   .array(cartItemSchema)
