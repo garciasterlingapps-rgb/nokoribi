@@ -171,7 +171,7 @@ export async function loginAction(
     };
   }
 
-  const row = await queryOne<{ id: string; password_hash: string }>(
+  const row = await queryOne<{ id: string; password_hash: string | null }>(
     "SELECT * FROM users WHERE email = $1",
     [email]
   );
@@ -179,6 +179,10 @@ export async function loginAction(
   if (!row) {
     await recordFailedLogin(ip, email);
     return { error: "Correo o contraseña incorrectos" };
+  }
+
+  if (!row.password_hash) {
+    return { error: "Esta cuenta usa Google. Inicia sesión con Google." };
   }
 
   const ok = await verifyPassword(parsed.data.password, row.password_hash);

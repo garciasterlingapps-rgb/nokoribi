@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { registerAction } from "@/lib/actions";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 
 export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(registerAction, {});
@@ -16,7 +17,17 @@ export default function RegisterPage() {
         Regístrate para hacer pedidos y ganar puntos en cada compra.
       </p>
 
-      <form action={formAction} className="mt-8 space-y-4">
+      <div className="mt-8">
+        <GoogleSignInButton />
+      </div>
+
+      <div className="my-6 flex items-center gap-3">
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-xs text-muted">o con tu correo</span>
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <form action={formAction} className="space-y-4">
         {state.error && (
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
             {state.error}

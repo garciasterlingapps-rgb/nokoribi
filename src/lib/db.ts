@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
   name          TEXT NOT NULL,
   email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT,
   phone         TEXT,
   address       TEXT,
   role          TEXT NOT NULL DEFAULT 'CLIENTE',
@@ -266,6 +266,7 @@ async function migrate(pool: Pool): Promise<void> {
   await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS game_best INTEGER NOT NULL DEFAULT 0");
   await pool.query("ALTER TABLE game_plays DROP COLUMN IF EXISTS score");
   await pool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS points_awarded INTEGER NOT NULL DEFAULT 0");
+  await pool.query("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL");
 }
 
 async function seed(pool: Pool): Promise<void> {
