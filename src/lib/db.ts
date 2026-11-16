@@ -175,7 +175,6 @@ const PRODUCT_IMAGES: Record<string, string> = {
   "Pesto rojo con pimientos asados":
     "/images/products/pesto-rojo-pimientos-asados.webp",
   "Pesto normal": "/images/products/pesto-normal.webp",
-  "Mezcla de 4 quesos untable": "/images/products/mezcla-4-quesos.webp",
   "Pizza del Mes": "/images/products/pizza-del-mes.webp",
 };
 
@@ -240,7 +239,6 @@ const PRODUCTS: ProductDef[] = [
   { name: "Humus", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Humus"], desc: "Humus de garbanzos, cremoso y con toque de limón y tahini.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pesto rojo con pimientos asados", category: "UNTABLES", price: 14000, image: PRODUCT_IMAGES["Pesto rojo con pimientos asados"], desc: "Pesto rojo con pimientos asados, frutos secos y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pesto normal", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Pesto normal"], desc: "Pesto clásico de albahaca, piñones, ajo y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Mezcla de 4 quesos untable", category: "UNTABLES", price: 15000, image: PRODUCT_IMAGES["Mezcla de 4 quesos untable"], desc: "Mezcla cremosa de 4 quesos, ideal para untar.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pizza del Mes", category: "PIZZA", price: 22000, image: PRODUCT_IMAGES["Pizza del Mes"], desc: `Nuestra pizza napolitana especial de este mes (${DIAMETRO}). Edición limitada.`, isBuilder: 0, isPizzaDelMes: 1, stock: 50 },
 ];
 
@@ -354,6 +352,11 @@ async function seed(pool: Pool): Promise<void> {
   // Desactivar productos de panadería (por ahora solo pizzas y untables)
   await pool.query(
     "UPDATE products SET active = 0 WHERE name IN ('Churros (x6)', 'Cinnamon Rolls (x4)')"
+  );
+
+  // Desactivar la mezcla de 4 quesos (ya no se ofrece)
+  await pool.query(
+    "UPDATE products SET active = 0 WHERE name = 'Mezcla de 4 quesos untable'"
   );
 
   // Migración: reemplazar "masa madre" por "pizza napolitana" (una sola vez)
