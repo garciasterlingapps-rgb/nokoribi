@@ -16,7 +16,7 @@ export function Footer() {
               <span className="font-display text-lg font-semibold">Nokoribi</span>
             </div>
             <p className="mt-3 text-sm text-muted">
-              Pizzas de masa madre y panadería artesanal, congeladas y empacadas
+              Pizzas napolitanas y untables artesanales, congelados y empacados
               al vacío para disfrutar cuando quieras.
             </p>
           </div>
@@ -44,7 +44,7 @@ export function Footer() {
         </div>
 
         <p className="mt-10 border-t border-line pt-6 text-xs text-muted">
-          © {CURRENT_YEAR} Nokoribi. Hecho a mano, con masa madre.
+          © {CURRENT_YEAR} Nokoribi. Hecho a mano, al estilo napolitano.
         </p>
       </div>
     </footer>

@@ -51,6 +51,11 @@ export default async function RewardsPage() {
         </div>
       </div>
 
+      <p className="mt-4 rounded-2xl border border-line bg-card px-4 py-3 text-sm text-muted">
+        ℹ️ Los puntos por compra se acreditan <strong className="text-foreground">después de entregar tu pedido</strong>.
+        Las recompensas las aplicas en el checkout con tus puntos disponibles.
+      </p>
+
       {/* Catálogo */}
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {rewards.map((reward) => {

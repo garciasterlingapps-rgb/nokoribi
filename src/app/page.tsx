@@ -65,7 +65,7 @@ export default async function Home() {
               {
                 icon: <Gift className="h-6 w-6" />,
                 title: "3. Gana puntos",
-                text: "Cada compra suma puntos que puedes canjear por descuentos, envío gratis y más.",
+                text: "Cada compra suma puntos que puedes canjear por envío gratis, pizza gratis y más.",
               },
             ].map((step) => (
               <div key={step.title} className="flex flex-col items-center text-center">

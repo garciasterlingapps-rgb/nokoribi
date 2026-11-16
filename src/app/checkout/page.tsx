@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getPointsPerCop, getShippingCost } from "@/lib/settings";
 import { getRewards } from "@/lib/data";
+import { getUpcomingDeliveryDays } from "@/lib/money";
 import { CheckoutForm } from "@/components/checkout-form";
 
 export const metadata = { title: "Finalizar pedido" };
@@ -17,6 +18,7 @@ export default async function CheckoutPage() {
   const rewards = await getRewards();
   const pointsPerCop = await getPointsPerCop();
   const shippingCost = await getShippingCost();
+  const deliveryDays = getUpcomingDeliveryDays();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -32,6 +34,7 @@ export default async function CheckoutPage() {
           pointsPerCop={pointsPerCop}
           shippingCost={shippingCost}
           rewards={rewards}
+          deliveryDays={deliveryDays}
         />
       </div>
       <p className="mt-8 text-center text-xs text-muted">

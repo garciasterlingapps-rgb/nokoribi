@@ -11,7 +11,7 @@ export interface HeroSlide {
 export const heroSlides: HeroSlide[] = [
   {
     image: "/hero/1.jpg",
-    title: "Pizzas de masa madre",
+    title: "Pizzas napolitanas",
     subtitle: "Congeladas y empacadas al vacío, listas cuando quieras.",
     cta: { label: "Ver pizzas", href: "/productos?categoria=PIZZA" },
   },
@@ -22,12 +22,6 @@ export const heroSlides: HeroSlide[] = [
     cta: { label: "Jugar ahora", href: "/juego" },
   },
   {
-    image: "/hero/2.jpg",
-    title: "Panadería artesanal",
-    subtitle: "Churros, cinnamon rolls y más, congelados para disfrutar cuando quieras.",
-    cta: { label: "Ver panadería", href: "/productos?categoria=PANADERIA" },
-  },
-  {
     image: "/hero/untables.jpg",
     title: "Untables artesanales",
     subtitle: "Humus, pestos y mezcla de quesos para untar. El acompañamiento perfecto para tu pizza.",
@@ -36,7 +30,7 @@ export const heroSlides: HeroSlide[] = [
   {
     image: "/hero/3.jpg",
     title: "Gana puntos en cada pedido",
-    subtitle: "Canjéalos por descuentos, envío gratis y más recompensas.",
+    subtitle: "Canjéalos por envío gratis, pizza gratis y más recompensas.",
     cta: { label: "Ver recompensas", href: "/recompensas" },
   },
 ];

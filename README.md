@@ -1,6 +1,6 @@
 # Nokoribi 🍕
 
-Plataforma web de e-commerce y fidelización para un emprendimiento de **pizzas de masa madre congeladas**, **panadería congelable** y **untables artesanales**.
+Plataforma web de e-commerce y fidelización para un emprendimiento de **pizzas napolitanas congeladas** y **untables artesanales**.
 
 ## Stack
 

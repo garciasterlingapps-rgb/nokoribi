@@ -59,6 +59,8 @@ const TOPPING_SIZE = 14; // % del ancho de la pizza (uniforme para todos)
 
 // Máximo de ingredientes extra por pizza (coincide con el límite del servidor).
 const MAX_EXTRAS = 10;
+// Mínimo de toppings distintos requeridos en "Arma tu propia pizza".
+const MIN_TOPPINGS = 3;
 
 // Posiciones aleatorias dentro del círculo de la pizza, sin solaparse (% desde el centro).
 function randomPositions(count: number): { x: number; y: number }[] {
@@ -192,7 +194,11 @@ export function PizzaBuilder({
               <p className="text-center text-xs text-muted lg:text-sm">
                 {placed.length === 0
                   ? `Elige tus ingredientes (máx. ${MAX_EXTRAS}) 👇`
-                  : `${placed.reduce((s, p) => s + p.quantity, 0)}/${MAX_EXTRAS} porciones agregadas`}
+                  : `${placed.reduce((s, p) => s + p.quantity, 0)}/${MAX_EXTRAS} porciones · ${
+                      placed.length < MIN_TOPPINGS
+                        ? `faltan ${MIN_TOPPINGS - placed.length} topping(s)`
+                        : "¡listo!"
+                    }`}
               </p>
               <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-line bg-card px-4 py-3 lg:px-5 lg:py-4">
                 <div>
@@ -204,7 +210,7 @@ export function PizzaBuilder({
                 <button
                   type="button"
                   onClick={handleAdd}
-                  disabled={placed.length === 0}
+                  disabled={placed.length < MIN_TOPPINGS}
                   className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-accent px-4 py-2.5 font-medium text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 lg:px-5 lg:py-3"
                 >
                   <ShoppingBag className="h-4 w-4" />
@@ -239,7 +245,7 @@ export function PizzaBuilder({
             {product.description}
           </p>
           <p className="mt-2 text-xs text-muted lg:text-sm">
-            Base (masa madre + salsa + queso):{" "}
+            Base (masa napolitana + salsa + queso):{" "}
             <span className="font-medium text-foreground">
               {formatCOP(product.base_price)}
             </span>

@@ -20,11 +20,13 @@ export function CheckoutForm({
   pointsPerCop,
   shippingCost,
   rewards,
+  deliveryDays,
 }: {
   user: SafeUser;
   pointsPerCop: number;
   shippingCost: number;
   rewards: Reward[];
+  deliveryDays: string[];
 }) {
   const { items, subtotal } = useCart();
   const [state, formAction, pending] = useActionState(placeOrderAction, {});
@@ -41,6 +43,11 @@ export function CheckoutForm({
         {/* Dirección */}
         <section className="rounded-2xl border border-line bg-card p-5">
           <h2 className="font-semibold">Dirección de entrega</h2>
+          <p className="mt-1 text-sm text-muted">
+            📅 Entregamos los <strong className="text-foreground">lunes y viernes</strong>.
+            Próximas fechas tentativas:{" "}
+            <strong className="text-foreground">{deliveryDays.join(" y ")}</strong>.
+          </p>
           <label className="mt-4 block text-sm text-muted">
             Dirección
             <input

@@ -126,11 +126,13 @@ function ToppingIcon({
 export function PizzaCatcherGame({
   loggedIn,
   pointsPerPizza,
+  gameDailyMaxPoints,
   personalBest,
   leaderboard,
 }: {
   loggedIn: boolean;
   pointsPerPizza: number;
+  gameDailyMaxPoints: number;
   personalBest: number;
   leaderboard: LeaderboardEntry[];
 }) {
@@ -722,6 +724,19 @@ export function PizzaCatcherGame({
         Controles: flechas ← → o arrastra con el dedo. Pierdes un corazón al
         atrapar un ingrediente equivocado.
       </p>
+
+      {/* Reglas de puntos */}
+      <div className="mt-6 rounded-2xl border border-line bg-card p-4">
+        <h2 className="font-display text-lg font-semibold">
+          🎁 ¿Cómo funcionan los puntos?
+        </h2>
+        <ul className="mt-2 space-y-1.5 text-sm text-muted">
+          <li>· Ganas {pointsPerPizza} puntos por cada pizza completada.</li>
+          <li>· Solo sumas puntos en tu primera partida del día.</li>
+          <li>· Máximo {gameDailyMaxPoints} puntos al día por jugar.</li>
+          <li>· Necesitas iniciar sesión para ganar puntos.</li>
+        </ul>
+      </div>
 
       {/* Top 10 */}
       {leaderboard.length > 0 && (

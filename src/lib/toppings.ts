@@ -16,8 +16,7 @@ export const BASE_PIZZA_SPRITE = "/images/toppings/pizza-base.png";
 export const TOPPINGS: ToppingVisual[] = [
   { name: "Queso mozzarella", sprite: "/images/toppings/queso.png", emoji: "🧀", x: 0, y: 6, size: 44 },
   { name: "Pepperoni", sprite: "/images/toppings/pepperoni.png", emoji: "🍕", x: -22, y: -14, size: 20 },
-  { name: "Champiñones", sprite: "/images/toppings/champinones.png", emoji: "🍄", x: 20, y: -18, size: 20 },
-  { name: "Aceitunas", sprite: "/images/toppings/aceitunas.png", emoji: "🫒", x: -28, y: 14, size: 16 },
+  { name: "Aceitunas", sprite: "/images/toppings/aceitunas-verdes.png", emoji: "🫒", x: -28, y: 14, size: 16 },
   { name: "Cebolla caramelizada", sprite: "/images/toppings/cebolla.png", emoji: "🧅", x: 14, y: 22, size: 18 },
   { name: "Maíz dulce", sprite: "/images/toppings/maiz.png", emoji: "🌽", x: 0, y: -24, size: 18 },
   { name: "Lomo curado", sprite: "/images/toppings/lomo.png", emoji: "🥩", x: 26, y: -2, size: 18 },
@@ -28,6 +27,8 @@ export const TOPPINGS: ToppingVisual[] = [
   { name: "Berenjena", sprite: "/images/toppings/berenjena.png", emoji: "🍆", x: -12, y: 10, size: 18 },
   { name: "Zucchini", sprite: "/images/toppings/zucchini.png", emoji: "🥒", x: 10, y: -10, size: 18 },
   { name: "Albahaca", sprite: "/images/toppings/albahaca.png", emoji: "🌿", x: 0, y: 0, size: 20 },
+  { name: "Piña", sprite: "/images/toppings/pina.png", emoji: "🍍", x: 22, y: 12, size: 18 },
+  { name: "Jamón común", sprite: "/images/toppings/jamon-comun.png", emoji: "🍖", x: -20, y: -8, size: 18 },
 ];
 
 export function getToppingVisual(name: string): ToppingVisual | undefined {

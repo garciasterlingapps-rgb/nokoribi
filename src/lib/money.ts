@@ -29,3 +29,21 @@ export function formatDate(iso: string): string {
     minute: "2-digit",
   }).format(new Date(iso));
 }
+
+// Próximos días de entrega (lunes y viernes), ordenados por fecha.
+export function getUpcomingDeliveryDays(): string[] {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("es-CO", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  });
+  const dates = [1, 5].map((day) => {
+    const diff = (day - now.getDay() + 7) % 7;
+    const date = new Date(now);
+    date.setDate(now.getDate() + diff);
+    return { day, date };
+  });
+  dates.sort((a, b) => a.date.getTime() - b.date.getTime());
+  return dates.map((d) => formatter.format(d.date));
+}

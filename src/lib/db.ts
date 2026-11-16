@@ -183,7 +183,7 @@ const PRODUCT_IMAGES: Record<string, string> = {
 export const BUILD_YOUR_OWN_PIZZA_NAME = "Arma tu propia pizza";
 const BUILD_YOUR_OWN_PIZZA_PRICE = 13000;
 const BUILD_YOUR_OWN_PIZZA_DESC =
-  "Pizza de 30 cm de diámetro. Elige tus ingredientes y mira cómo se arma tu pizza, paso a paso.";
+  "Pizza napolitana de 30 cm de diámetro. Elige tus ingredientes y mira cómo se arma tu pizza, paso a paso.";
 
 const DIAMETRO = "30 cm de diámetro";
 
@@ -192,7 +192,6 @@ const INGREDIENTS: { name: string; extraPrice: number; unit: string | null }[] =
   { name: "Salsa de tomate", extraPrice: 0, unit: null },
   { name: "Queso mozzarella", extraPrice: 4000, unit: null },
   { name: "Pepperoni", extraPrice: 4000, unit: null },
-  { name: "Champiñones", extraPrice: 3500, unit: null },
   { name: "Aceitunas", extraPrice: 3000, unit: null },
   { name: "Cebolla caramelizada", extraPrice: 3000, unit: null },
   { name: "Maíz dulce", extraPrice: 3000, unit: null },
@@ -204,6 +203,8 @@ const INGREDIENTS: { name: string; extraPrice: number; unit: string | null }[] =
   { name: "Berenjena", extraPrice: 3000, unit: null },
   { name: "Zucchini", extraPrice: 3000, unit: null },
   { name: "Albahaca", extraPrice: 3000, unit: null },
+  { name: "Piña", extraPrice: 3000, unit: null },
+  { name: "Jamón común", extraPrice: 4000, unit: null },
 ];
 
 // Ingredientes base de la Pizza Vegetariana (nueva receta).
@@ -218,7 +219,7 @@ const VEGETARIANA_INGREDIENTS = [
   "Albahaca",
 ];
 
-const VEGETARIANA_DESC = `Pizza de ${DIAMETRO}. Masa madre, salsa de tomate, queso mozzarella, berenjena, zucchini, pimentón asado, aceitunas, rúcula y albahaca. Congelada y empacada al vacío.`;
+const VEGETARIANA_DESC = `Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella, berenjena, zucchini, pimentón asado, aceitunas, rúcula y albahaca. Congelada y empacada al vacío.`;
 
 interface ProductDef {
   name: string;
@@ -232,17 +233,15 @@ interface ProductDef {
 }
 
 const PRODUCTS: ProductDef[] = [
-  { name: "Pizza Pepperoni", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Pepperoni"], desc: `Pizza de ${DIAMETRO}. Masa madre de larga fermentación, salsa de tomate, queso mozzarella y pepperoni. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pizza Pepperoni", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Pepperoni"], desc: `Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella y pepperoni. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pizza Vegetariana", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Vegetariana"], desc: VEGETARIANA_DESC, isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Pizza Lomo Curado", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Lomo Curado"], desc: `Pizza de ${DIAMETRO}. Masa madre, salsa de tomate, queso mozzarella, lomo curado y rúcula. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Churros (x6)", category: "PANADERIA", price: 12000, image: PRODUCT_IMAGES["Churros (x6)"], desc: "Churros artesanales listos para hornear o freír. Congelados y empacados al vacío.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Cinnamon Rolls (x4)", category: "PANADERIA", price: 15000, image: PRODUCT_IMAGES["Cinnamon Rolls (x4)"], desc: "Rollos de canela con glaseado, listos para hornear. Congelados y empacados al vacío.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
+  { name: "Pizza Lomo Curado", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Lomo Curado"], desc: `Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella, lomo curado y rúcula. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: BUILD_YOUR_OWN_PIZZA_NAME, category: "PIZZA", price: BUILD_YOUR_OWN_PIZZA_PRICE, image: "/images/toppings/pizza-base.png", desc: BUILD_YOUR_OWN_PIZZA_DESC, isBuilder: 1, isPizzaDelMes: 0, stock: null },
   { name: "Humus", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Humus"], desc: "Humus de garbanzos, cremoso y con toque de limón y tahini.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pesto rojo con pimientos asados", category: "UNTABLES", price: 14000, image: PRODUCT_IMAGES["Pesto rojo con pimientos asados"], desc: "Pesto rojo con pimientos asados, frutos secos y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pesto normal", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Pesto normal"], desc: "Pesto clásico de albahaca, piñones, ajo y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Mezcla de 4 quesos untable", category: "UNTABLES", price: 15000, image: PRODUCT_IMAGES["Mezcla de 4 quesos untable"], desc: "Mezcla cremosa de 4 quesos, ideal para untar.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: "Pizza del Mes", category: "PIZZA", price: 22000, image: PRODUCT_IMAGES["Pizza del Mes"], desc: `Nuestra pizza especial de este mes (${DIAMETRO}). Edición limitada.`, isBuilder: 0, isPizzaDelMes: 1, stock: 50 },
+  { name: "Pizza del Mes", category: "PIZZA", price: 22000, image: PRODUCT_IMAGES["Pizza del Mes"], desc: `Nuestra pizza napolitana especial de este mes (${DIAMETRO}). Edición limitada.`, isBuilder: 0, isPizzaDelMes: 1, stock: 50 },
 ];
 
 // Garantiza que el esquema exista y siembra los datos iniciales (idempotente).
@@ -318,6 +317,11 @@ async function seed(pool: Pool): Promise<void> {
     }
   }
 
+  // Desactivar ingredientes que ya no se usan (p. ej. champiñones)
+  await pool.query(
+    "UPDATE ingredients SET available = 0 WHERE name = 'Champiñones'"
+  );
+
   // Productos: insertar los que falten (NO sobrescribir los existentes, para
   // no borrar los cambios que haga el admin en la Pizza del Mes).
   for (const p of PRODUCTS) {
@@ -346,6 +350,29 @@ async function seed(pool: Pool): Promise<void> {
       [randomUUID(), p.name, p.desc, p.category, p.price, p.image, p.isBuilder, p.isPizzaDelMes, p.stock, now]
     );
   }
+
+  // Desactivar productos de panadería (por ahora solo pizzas y untables)
+  await pool.query(
+    "UPDATE products SET active = 0 WHERE name IN ('Churros (x6)', 'Cinnamon Rolls (x4)')"
+  );
+
+  // Migración: reemplazar "masa madre" por "pizza napolitana" (una sola vez)
+  await pool.query(
+    "UPDATE products SET description = $1 WHERE name = 'Pizza Pepperoni' AND description ILIKE '%masa madre%'",
+    [`Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella y pepperoni. Congelada y empacada al vacío.`]
+  );
+  await pool.query(
+    "UPDATE products SET description = $1 WHERE name = 'Pizza Vegetariana' AND description ILIKE '%masa madre%'",
+    [VEGETARIANA_DESC]
+  );
+  await pool.query(
+    "UPDATE products SET description = $1 WHERE name = 'Pizza Lomo Curado' AND description ILIKE '%masa madre%'",
+    [`Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella, lomo curado y rúcula. Congelada y empacada al vacío.`]
+  );
+  await pool.query(
+    "UPDATE products SET description = $1 WHERE name = 'Arma tu propia pizza' AND description ILIKE '%masa madre%'",
+    [BUILD_YOUR_OWN_PIZZA_DESC]
+  );
 
   // Migración única: actualizar la receta de la Pizza Vegetariana (solo si aún
   // muestra la receta antigua, para no pisar ediciones posteriores del admin).
@@ -380,13 +407,21 @@ async function seed(pool: Pool): Promise<void> {
     );
   }
 
+  // Migración de recompensas (nuevas reglas: 6 pizzas = envío gratis, 12 = pizza gratis)
+  await pool.query(
+    "UPDATE rewards SET cost_points = 120 WHERE type = 'ENVIO_GRATIS'"
+  );
+  await pool.query(
+    "UPDATE rewards SET cost_points = 240, name = 'Pizza gratis (1 ingrediente)' WHERE type = 'PRODUCTO'"
+  );
+  await pool.query("UPDATE rewards SET active = 0 WHERE type = 'DESCUENTO'");
+
   // Recompensas (solo si no hay)
   const rewardsCount = await pool.query<{ n: number }>("SELECT COUNT(*) AS n FROM rewards");
   if ((rewardsCount.rows[0]?.n ?? 0) === 0) {
     const rewards: [string, string, number, number][] = [
-      ["Envío gratis", "ENVIO_GRATIS", 200, 0],
-      ["10% de descuento", "DESCUENTO", 300, 10],
-      ["Pizza gratis", "PRODUCTO", 500, 20000],
+      ["Envío gratis", "ENVIO_GRATIS", 120, 0],
+      ["Pizza gratis (1 ingrediente)", "PRODUCTO", 240, 20000],
     ];
     for (const [name, type, cost, value] of rewards) {
       await pool.query(

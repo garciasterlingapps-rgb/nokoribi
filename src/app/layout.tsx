@@ -23,11 +23,11 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Nokoribi — Pizzas de masa madre congeladas",
+    default: "Nokoribi — Pizzas napolitanas congeladas",
     template: "%s · Nokoribi",
   },
   description:
-    "Pizzas de masa madre y panadería artesanal, congeladas y empacadas al vacío. Arma tu combinación favorita y gana puntos por cada compra.",
+    "Pizzas napolitanas y untables artesanales, congelados y empacados al vacío. Arma tu combinación favorita y gana puntos por cada compra.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
