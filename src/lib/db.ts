@@ -235,7 +235,7 @@ const PRODUCTS: ProductDef[] = [
   { name: "Pizza Pepperoni", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Pepperoni"], desc: `Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella y pepperoni. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pizza Vegetariana", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Vegetariana"], desc: VEGETARIANA_DESC, isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pizza Lomo Curado", category: "PIZZA", price: 20000, image: PRODUCT_IMAGES["Pizza Lomo Curado"], desc: `Pizza napolitana de ${DIAMETRO}. Salsa de tomate, queso mozzarella, lomo curado y rúcula. Congelada y empacada al vacío.`, isBuilder: 0, isPizzaDelMes: 0, stock: null },
-  { name: BUILD_YOUR_OWN_PIZZA_NAME, category: "PIZZA", price: BUILD_YOUR_OWN_PIZZA_PRICE, image: "/images/toppings/pizza-base.png", desc: BUILD_YOUR_OWN_PIZZA_DESC, isBuilder: 1, isPizzaDelMes: 0, stock: null },
+  { name: BUILD_YOUR_OWN_PIZZA_NAME, category: "PIZZA", price: BUILD_YOUR_OWN_PIZZA_PRICE, image: "/images/products/arma-tu-pizza.webp", desc: BUILD_YOUR_OWN_PIZZA_DESC, isBuilder: 1, isPizzaDelMes: 0, stock: null },
   { name: "Humus", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Humus"], desc: "Humus de garbanzos, cremoso y con toque de limón y tahini.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pesto rojo con pimientos asados", category: "UNTABLES", price: 14000, image: PRODUCT_IMAGES["Pesto rojo con pimientos asados"], desc: "Pesto rojo con pimientos asados, frutos secos y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
   { name: "Pesto normal", category: "UNTABLES", price: 12000, image: PRODUCT_IMAGES["Pesto normal"], desc: "Pesto clásico de albahaca, piñones, ajo y queso.", isBuilder: 0, isPizzaDelMes: 0, stock: null },
@@ -357,6 +357,11 @@ async function seed(pool: Pool): Promise<void> {
   // Desactivar la mezcla de 4 quesos (ya no se ofrece)
   await pool.query(
     "UPDATE products SET active = 0 WHERE name = 'Mezcla de 4 quesos untable'"
+  );
+
+  // Actualizar la imagen de "Arma tu propia pizza" (antes usaba un sprite)
+  await pool.query(
+    "UPDATE products SET image_url = '/images/products/arma-tu-pizza.webp' WHERE name = 'Arma tu propia pizza' AND image_url = '/images/toppings/pizza-base.png'"
   );
 
   // Migración: reemplazar "masa madre" por "pizza napolitana" (una sola vez)
