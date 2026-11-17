@@ -24,7 +24,7 @@ export const heroSlides: HeroSlide[] = [
   {
     image: "/hero/untables.jpg",
     title: "Untables artesanales",
-    subtitle: "Humus, pestos y mezcla de quesos para untar. El acompañamiento perfecto para tu pizza.",
+    subtitle: "Humus y pestos artesanales para untar. El acompañamiento perfecto para tu pizza.",
     cta: { label: "Ver untables", href: "/productos?categoria=UNTABLES" },
   },
   {
